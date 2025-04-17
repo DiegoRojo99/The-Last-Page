@@ -32,9 +32,9 @@ const Navbar = () => {
           <Link href="/" className="hover:text-gray-400">
             Home
           </Link>
-          <Link href="/dashboard" className="hover:text-gray-400">
+          {/* <Link href="/dashboard" className="hover:text-gray-400">
             Dashboard
-          </Link>
+          </Link> */}
           {user ? (
             <>
               <span className="hover:text-gray-400 cursor-pointer" onClick={handleLogout}>
