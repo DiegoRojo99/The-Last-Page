@@ -10,8 +10,7 @@ const Navbar = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
     });
 
     return () => unsubscribe();
