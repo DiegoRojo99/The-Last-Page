@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { auth } from "../utils/firebase";
 import { useRouter } from "next/navigation";
-import { User } from "firebase/auth";
+import { onAuthStateChanged, signOut, User } from "firebase/auth";
 
 const Navbar = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -11,6 +11,7 @@ const Navbar = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
     });
 
     return () => unsubscribe();
@@ -18,6 +19,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     await signOut(auth);
+    router.push("/login");
   };
 
   return (
@@ -30,9 +32,6 @@ const Navbar = () => {
           <Link href="/" className="hover:text-gray-400">
             Home
           </Link>
-          {/* <Link href="/dashboard" className="hover:text-gray-400">
-            Dashboard
-          </Link> */}
           {user ? (
             <>
               <span className="hover:text-gray-400 cursor-pointer" onClick={handleLogout}>
