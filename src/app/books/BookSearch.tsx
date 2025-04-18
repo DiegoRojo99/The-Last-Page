@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Book } from '../utils/types/books';
 import BookSearchBar from './BookSearchBar';
+import BookSearchResult from './BookSearchResult';
 
 const BookSearch: React.FC = () => {
   const [query, setQuery] = useState('');
@@ -33,18 +34,7 @@ const BookSearch: React.FC = () => {
       <BookSearchBar searchValue={query} setSearchValue={setQuery} handleSearch={handleSearch} />
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <div className='flex flex-col items-center justify-center'>
-        {books.length > 0 ? (
-          <ul className='flex flex-row items-center justify-center'>
-            {books.map((book) => (
-              <li key={book.id}>
-                <img src={book.volumeInfo.imageLinks.thumbnail} alt={book.volumeInfo.title} style={{ width: '50px', height: '75px' }} />
-                <p>{book.volumeInfo.title}</p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          !loading && <p>No books found.</p>
-        )}
+        <BookSearchResult books={books} />
       </div>
     </div>
   );
