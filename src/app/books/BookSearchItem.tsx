@@ -5,7 +5,7 @@ export default function BookSearchItem({ book }: { book: Book }) {
   if (!book.volumeInfo) {
     return <p>No book information available.</p>;
   }
-  let bookInfo = book.volumeInfo;
+  const bookInfo = book.volumeInfo;
   let bookDescription = bookInfo.description || "No description available.";
   if (bookDescription?.length > 100) { bookDescription = `${bookInfo.description.substring(0, 100)}...`; }
   let bookTitle = bookInfo.title;
