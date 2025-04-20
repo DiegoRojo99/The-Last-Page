@@ -33,20 +33,18 @@ const BookSearch: React.FC = () => {
   if (loading) {
     return <p>Loading...</p>;
   }
-  if (error) {
-    return <p style={{ color: 'red' }}>{error}</p>;
-  }
-  if (books.length === 0) {
-    return <p>No books found.</p>;
-  }
 
   return (
     <div className='flex flex-col items-center justify-center p-4'>
       <BookSearchBar searchValue={query} setSearchValue={setQuery} handleSearch={handleSearch} />
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      <div className='flex flex-col items-center justify-center'>
-        <BookSearchResult books={books} />
-      </div>
+      {books.length === 0 ? (
+        <p>No books found.</p>
+      ) : (
+        <div className='flex flex-col items-center justify-center'>
+          <BookSearchResult books={books} />
+        </div>
+      )}
     </div>
   );
 };
