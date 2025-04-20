@@ -23,11 +23,22 @@ const BookSearch: React.FC = () => {
       const data = await response.json();
       setBooks(data);
     } catch (err) {
+      console.error('Error fetching books:', err);
       setError('Failed to fetch books. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+  if (error) {
+    return <p style={{ color: 'red' }}>{error}</p>;
+  }
+  if (books.length === 0) {
+    return <p>No books found.</p>;
+  }
 
   return (
     <div className='flex flex-col items-center justify-center p-4'>
