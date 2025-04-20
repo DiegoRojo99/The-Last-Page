@@ -1,0 +1,5 @@
+.book-search-item {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  width: 100%;
+}

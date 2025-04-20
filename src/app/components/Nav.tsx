@@ -29,8 +29,8 @@ const Navbar = () => {
           <Link href="/">The Last Page</Link>
         </div>
         <div className="space-x-6">
-          <Link href="/" className="hover:text-gray-400">
-            Home
+          <Link href="/books" className="hover:text-gray-400">
+            Books
           </Link>
           {user ? (
             <>
