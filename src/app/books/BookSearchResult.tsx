@@ -8,7 +8,7 @@ export default function BookSearchResult({ books }: { books: Book[] }) {
       {books.length > 0 ? (
         <ul className='flex flex-col items-center justify-center'>
           {books.map((book) => (
-            <li key={book.id} className='m-2 book-search-item'>
+            <li key={book.id} className='m-2 w-full'>
               <BookSearchItem book={book} />
             </li>
           ))}
