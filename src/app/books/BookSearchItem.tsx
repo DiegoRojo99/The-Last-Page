@@ -13,7 +13,7 @@ export default function BookSearchItem({ book }: { book: Book }) {
   if (bookTitle?.length > 60) { bookTitle = `${bookTitle.substring(0, 60)}...`; }
 
   return (
-    <>
+    <a href={`/books/${book.id}`} target="_blank" rel="noopener noreferrer" className="book-search-item">
       {bookInfo.imageLinks?.thumbnail && (
         <Image
           src={bookInfo.imageLinks?.thumbnail}
@@ -29,6 +29,6 @@ export default function BookSearchItem({ book }: { book: Book }) {
         <p className="text-xs">{bookDescription}</p>
         <p className="text-gray-500">{bookInfo.authors?.join(", ")}</p>
       </div>
-    </>
+    </a>
   );
 }
