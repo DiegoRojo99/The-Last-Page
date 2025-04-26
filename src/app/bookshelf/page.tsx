@@ -16,11 +16,14 @@ export default function BookshelfPage() {
 
   useEffect(() => {
     if(loading || !user) return; // Wait for user to be loaded
-    if(!user.getIdToken()) return; // Wait for user to be authenticated
     async function fetchBooks() {
       try {
         console.log("Fetching books...");
         const token = await user?.getIdToken();
+        if (!token) {
+          console.error("Failed to retrieve authentication token.");
+          return; // Exit if token is not available
+        }
         const res = await fetch('/api/user/books', {
           headers: {
             Authorization: `Bearer ${token}`,
