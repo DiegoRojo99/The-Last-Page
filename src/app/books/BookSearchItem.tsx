@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Book } from "../utils/types/books";
+import { Book } from "../utils/types/booksAPI";
 
 export default function BookSearchItem({ book }: { book: Book }) {
   if (!book.volumeInfo) {

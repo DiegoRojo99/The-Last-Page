@@ -1,4 +1,4 @@
-import { Book } from "../utils/types/books";
+import { Book } from "../utils/types/booksAPI";
 import BookSearchItem from "./BookSearchItem";
 import './Books.css';
 

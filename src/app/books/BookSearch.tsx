@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { Book } from '../utils/types/books';
+import { Book } from '../utils/types/booksAPI';
 import BookSearchBar from './BookSearchBar';
 import BookSearchResult from './BookSearchResult';
 
