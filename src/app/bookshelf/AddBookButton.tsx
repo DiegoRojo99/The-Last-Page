@@ -3,11 +3,11 @@
 import React from "react";
 import { FaPlus } from "react-icons/fa";
 
-export default function AddBookButton() {
-  function handleClick() {
-    // Later this will open the search modal
-    console.log("Open add book modal");
-  }
+interface AddBookButtonProps {
+  handleClick: () => void;
+}
+
+export default function AddBookButton({ handleClick }: AddBookButtonProps) {
 
   return (
     <button
