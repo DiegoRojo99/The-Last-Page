@@ -12,7 +12,7 @@ export default function AddBookButton({ handleClick }: AddBookButtonProps) {
   return (
     <button
       onClick={handleClick}
-      className="p-2 bg-green-600 text-white rounded-full shadow-md hover:bg-blue-700 transition"
+      className="cursor-pointer p-2 bg-green-600 text-white rounded-full shadow-md hover:bg-blue-700 transition"
       aria-label="Add Book"
     >
       <FaPlus size={12} />
