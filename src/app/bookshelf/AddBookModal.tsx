@@ -72,7 +72,7 @@ export function AddBookModal({ onClose }: AddBookModalProps) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onClick={handleOutsideClick}
     >
-      <div className="bg-white p-6 rounded-md shadow-md w-11/12 max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="bg-white p-6 rounded-md shadow-md w-11/12 max-w-sm md:max-w-md lg:max-w-lg max-h-[70vh] sm:max-h-[90vh] overflow-y-auto">
         <h2 className="text-2xl font-semibold text-center">Add a Book</h2>
         <BookSearch bookSelection={handleBookSelection} />
       </div>
