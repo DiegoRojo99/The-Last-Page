@@ -1,9 +1,11 @@
+type bookStatus = 'reading' | 'completed' | 'abandoned' | 'notStarted';
+
 type userBook = {
   id: string;
   title: string;
   authors: string[];
   coverImage: string;
-  status: 'notStarted' | 'currentlyReading' | 'completed' | 'dropped';
+  status: bookStatus;
   startedAt?: Timestamp;
   completedAt?: Timestamp;
   totalPages?: number;
@@ -50,5 +52,6 @@ export {
   achievement,
   bookDB,
   libraryBook,
-  wishlistBook
+  wishlistBook,
+  bookStatus
 }
