@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminAuth, adminDB } from "@/lib/firebase-admin";
-import { userBook } from "@/app/utils/types/booksDB";
+import { bookDB, userBook } from "@/app/utils/types/booksDB";
 
 async function verifyUser(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
@@ -14,26 +14,26 @@ async function verifyUser(req: NextRequest) {
   return decodedToken.uid;
 }
 
-// GET all user's books
-// export async function GET(req: NextRequest) {
-//   try {
-//     const uid = await verifyUser(req);
+// GET all user books
+export async function GET(req: NextRequest) {
+  try {
+    const uid = await verifyUser(req);
 
-//     const booksRef = adminDB.collection(`users/${uid}/books`);
-//     const booksQuery = query(booksRef);
-//     const booksSnapshot = await getDocs(booksQuery);
+    // Get the user's books collection reference
+    const booksRef = adminDB.collection(`users/${uid}/books`);
+    const snapshot = await booksRef.get();
 
-//     const books = booksSnapshot.docs.map(doc => ({
-//       id: doc.id,
-//       ...doc.data(),
-//     }));
+    // Map the documents to an array of books
+    const userBooks: bookDB[] = snapshot.docs.map(doc => ({
+      ...doc.data() as userBook,
+    }));
 
-//     return NextResponse.json(books);
-//   } catch (error) {
-//     console.error(error);
-//     return NextResponse.json({ error: "Unauthorized or Error fetching books" }, { status: 401 });
-//   }
-// }
+    return NextResponse.json(userBooks);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Unauthorized or Error fetching books" }, { status: 401 });
+  }
+}
 
 // POST a new book
 export async function POST(req: NextRequest) {
