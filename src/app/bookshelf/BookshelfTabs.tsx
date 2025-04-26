@@ -12,7 +12,6 @@ export default function BookshelfTabs({ selectedTab, onTabChange }: BookshelfTab
     { label: "Reading", value: "reading" },
     { label: "Not Started", value: "notStarted" },
     { label: "Completed", value: "completed" },
-    { label: "Abandoned", value: "abandoned" },
   ];
 
   return (
