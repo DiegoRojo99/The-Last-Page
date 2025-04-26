@@ -35,7 +35,7 @@ const BookSearch: React.FC<BookSearchProps> = ({ bookSelection }) => {
   };
 
   return (
-    <div className='flex flex-col items-center justify-center p-4'>
+    <div className='flex flex-col items-center justify-center'>
       <BookSearchBar searchValue={query} setSearchValue={setQuery} handleSearch={handleSearch} />
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
