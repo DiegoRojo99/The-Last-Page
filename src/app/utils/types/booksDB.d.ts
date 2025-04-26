@@ -27,7 +27,6 @@ type achievement = {
   description: string;
   achievedAt: Timestamp;
   type: 'booksRead' | 'seriesCompleted' | 'authorCompleted' | 'custom';
-  relatedData?: any; // e.g. seriesName or authorName
 }
 
 type bookDB = {
