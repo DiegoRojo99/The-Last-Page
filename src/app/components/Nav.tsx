@@ -1,7 +1,7 @@
 'use client';
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { auth } from "../utils/firebase";
+import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 
@@ -29,8 +29,8 @@ const Navbar = () => {
           <Link href="/">The Last Page</Link>
         </div>
         <div className="space-x-6">
-          <Link href="/books" className="hover:text-gray-400">
-            Books
+          <Link href="/bookshelf" className="hover:text-gray-400">
+            Bookshelf
           </Link>
           {user ? (
             <>

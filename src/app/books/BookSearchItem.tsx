@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Book } from "../utils/types/books";
+import { Book } from "../utils/types/booksAPI";
 
 export default function BookSearchItem({ book }: { book: Book }) {
   if (!book.volumeInfo) {
@@ -14,7 +14,7 @@ export default function BookSearchItem({ book }: { book: Book }) {
 
   return (
     <>
-      {bookInfo.imageLinks?.thumbnail && (
+      {bookInfo.imageLinks?.thumbnail ? 
         <Image
           src={bookInfo.imageLinks?.thumbnail}
           alt={bookTitle}
@@ -23,7 +23,11 @@ export default function BookSearchItem({ book }: { book: Book }) {
           className="object-cover w-16 h-24 rounded-md my-auto"
           loading="lazy"
         />
-      )}
+      :
+        <div className="w-16 h-24 bg-gray-200 rounded-md my-auto flex items-center justify-center text-gray-500 text-center">
+          No Image
+        </div>
+      }
       <div className='ml-2'>
         <h3 className="font-bold">{bookTitle}</h3>
         <p className="text-xs">{bookDescription}</p>

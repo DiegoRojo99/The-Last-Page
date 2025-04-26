@@ -1,10 +1,14 @@
 'use client';
 import React, { useState } from 'react';
-import { Book } from '../utils/types/books';
+import { Book } from '../utils/types/booksAPI';
 import BookSearchBar from './BookSearchBar';
 import BookSearchResult from './BookSearchResult';
 
-const BookSearch: React.FC = () => {
+interface BookSearchProps {
+  bookSelection?: (book: Book) => void;
+}
+
+const BookSearch: React.FC<BookSearchProps> = ({ bookSelection }) => {
   const [query, setQuery] = useState('');
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
@@ -30,19 +34,16 @@ const BookSearch: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return <p>Loading...</p>;
-  }
-
   return (
-    <div className='flex flex-col items-center justify-center p-4'>
+    <div className='flex flex-col items-center justify-center'>
       <BookSearchBar searchValue={query} setSearchValue={setQuery} handleSearch={handleSearch} />
+      {loading && <p>Loading...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {books.length === 0 ? (
         <p>No books found.</p>
       ) : (
         <div className='flex flex-col items-center justify-center'>
-          <BookSearchResult books={books} />
+          <BookSearchResult books={books} bookSelection={bookSelection} />
         </div>
       )}
     </div>

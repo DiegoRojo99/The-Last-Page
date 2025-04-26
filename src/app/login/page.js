@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { auth } from '../utils/firebase';
+import { auth } from '@/lib/firebase';
 import { FaGoogle } from 'react-icons/fa';
 const provider = new GoogleAuthProvider();
 
