@@ -1,34 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
+import { bookStatus } from "../utils/types/booksDB";
 
-const tabs = [
-  { key: "reading", label: "Reading" },
-  { key: "finished", label: "Finished" },
-  { key: "dropped", label: "Dropped" },
-];
+interface BookshelfTabsProps {
+  selectedTab: bookStatus;
+  onTabChange: (tab: bookStatus) => void;
+}
 
-export default function BookshelfTabs() {
-  const [activeTab, setActiveTab] = useState<string>("reading");
-
-  function handleTabClick(tabKey: string) {
-    setActiveTab(tabKey);
-    console.log(`Switched to tab: ${tabKey}`);
-  }
+export default function BookshelfTabs({ selectedTab, onTabChange }: BookshelfTabsProps) {
+  const tabs: { label: string; value: bookStatus }[] = [
+    { label: "Reading", value: "reading" },
+    { label: "Not Started", value: "notStarted" },
+    { label: "Completed", value: "completed" },
+    { label: "Abandoned", value: "abandoned" },
+  ];
 
   return (
-    <div className="flex space-x-6 border-b border-gray-300">
+    <div className="flex justify-around border-b border-gray-300">
       {tabs.map((tab) => (
         <button
-          key={tab.key}
-          onClick={() => handleTabClick(tab.key)}
-          className={`pb-2 text-sm font-medium transition-colors
-            ${
-              activeTab === tab.key
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-700 hover:text-blue-600"
-            }
-          `}
+          key={tab.value}
+          onClick={() => onTabChange(tab.value)}
+          className={`py-2 px-4 font-medium ${
+            selectedTab === tab.value
+              ? 'border-b-2 border-blue-500 text-blue-600'
+              : 'text-gray-600'
+          }`}
         >
           {tab.label}
         </button>
