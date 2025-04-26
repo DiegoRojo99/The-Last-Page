@@ -1,9 +1,9 @@
-type userBooks = {
+type userBook = {
   id: string;
   title: string;
   authors: string[];
   coverImage: string;
-  status: 'currentlyReading' | 'completed' | 'dropped';
+  status: 'notStarted' | 'currentlyReading' | 'completed' | 'dropped';
   startedAt?: Timestamp;
   completedAt?: Timestamp;
   totalPages?: number;
@@ -45,7 +45,7 @@ type wishlistBook =  bookDB & {
 }
 
 export {
-  userBooks,
+  userBook,
   readingSession,
   achievement,
   bookDB,
