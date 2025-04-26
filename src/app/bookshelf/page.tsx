@@ -57,7 +57,7 @@ export default function BookshelfPage() {
       <BookshelfTabs selectedTab={selectedTab} onTabChange={handleTabChange} />
 
       {/* Book Grid */}
-      <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      <div className="mt-6 flex flex-wrap gap-4 justify-start">
         {filteredBooks.map(book => (
           <BookCard key={book.id} book={book} />
         ))}
