@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { useEffect, useState } from "react";
 import BookCoverBackground from "./BookCoverBackground";
 import { CompleteUserBook } from "@/app/utils/types/booksAPI";
+import { sanitizeHtml } from "@/app/utils/common";
 
 interface BookPageProps {
   bookId: string;
@@ -59,10 +60,18 @@ export default function BookDetails({ bookId }: BookPageProps) {
       </div>
 
       {/* Icons row */}
-      <div className="flex gap-6 my-4 justify-around">
-        {/* <button className="text-blue-500">📖</button>
+      {/* <div className="flex gap-6 my-4 justify-around">
+        <button className="text-blue-500">📖</button>
         <button className="text-blue-500">✏️</button>
-        <button className="text-blue-500">⭐</button> */}
+        <button className="text-blue-500">⭐</button>
+      </div> */}
+
+      <hr style={{borderTopWidth: '0.25px'}} />
+
+      {/* Book description */}
+      <div className="px-6 text-left">
+        <h4 className="text-xl font-semibold pt-6 pb-3">Description</h4>
+        { book?.volumeInfo?.description && <div dangerouslySetInnerHTML={sanitizeHtml(book?.volumeInfo?.description)} />}
       </div>
     </div>
   );
