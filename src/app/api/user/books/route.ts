@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminAuth, adminDB } from "@/lib/firebase-admin";
-import { bookDB, userBook } from "@/app/utils/types/booksDB";
+import { userBook } from "@/app/utils/types/booksDB";
 
 async function verifyUser(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
@@ -24,11 +24,11 @@ export async function GET(req: NextRequest) {
     const snapshot = await booksRef.get();
 
     // Map the documents to an array of books
-    const userBooks: bookDB[] = snapshot.docs.map(doc => ({
+    const userBooks: userBook[] = snapshot.docs.map(doc => ({
       ...doc.data() as userBook,
     }));
 
-    return NextResponse.json(userBooks);
+    return NextResponse.json(userBooks, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Unauthorized or Error fetching books" }, { status: 401 });
