@@ -1,3 +1,5 @@
+import { userBook } from "./booksDB";
+
 type VolumeInfo = {
   title: string;
   authors: string[];
@@ -17,6 +19,13 @@ interface Book {
   volumeInfo: VolumeInfo;
 }
 
+interface CompleteUserBook {
+  id: string;
+  volumeInfo: VolumeInfo?;
+  userInfo: userBook;
+}
+
 export {
   Book,
+  CompleteUserBook
 }

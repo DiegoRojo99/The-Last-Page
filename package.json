@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "dompurify": "^3.2.5",
     "firebase": "^11.6.0",
     "firebase-admin": "^13.3.0",
     "next": "15.3.0",
