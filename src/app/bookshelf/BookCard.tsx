@@ -10,7 +10,7 @@ interface BookCardProps {
 
 export function BookCard({ book }: BookCardProps) {
   return (
-    <div className="border rounded-lg flex flex-col items-center w-[128px] h-[193px]">
+    <a href={`/books/${book.id}`} className="border rounded-lg flex flex-col items-center w-[128px] h-[193px]">
       {/* Cover Image */}
       {book.coverImage ? (
         <Image
@@ -36,6 +36,6 @@ export function BookCard({ book }: BookCardProps) {
           </p>
         )}
       </div>
-    </div>
+    </a>
   );
 }
