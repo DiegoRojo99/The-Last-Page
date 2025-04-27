@@ -1,12 +1,12 @@
 'use client';
 
-import { Book } from "@/app/utils/types/booksAPI";
 import { bookDB } from "@/app/utils/types/booksDB";
 import { useCurrentUser } from "@/lib/currentUser";
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { notFound } from "next/navigation";
 import { useEffect, useState } from "react";
+import BookCoverBackground from "./BookCoverBackground";
 
 interface BookPageProps {
   bookId: string;
@@ -14,7 +14,7 @@ interface BookPageProps {
 
 export default function BookDetails({ bookId }: BookPageProps) {
   const { user, loading } = useCurrentUser();
-  const [bookData, setBookData] = useState<bookDB | null>(null);
+  const [book, setBook] = useState<bookDB | null>(null);
 
   useEffect(() => {
     if (loading) return; 
@@ -24,24 +24,35 @@ export default function BookDetails({ bookId }: BookPageProps) {
     } 
     else {
       const bookRef = doc(db, `users/${user.uid}/books`, bookId);
-      const fetchBookData = async () => {
+      const fetchBook = async () => {
         const bookSnap = await getDoc(bookRef);
         if (bookSnap.exists()) {
           let bookDetails = bookSnap.data() as bookDB;
-          setBookData(bookDetails);
+          setBook(bookDetails);
         } 
         else {
           notFound();
         }
       };
-      fetchBookData();
+      fetchBook();
     }
   }, [loading, user]);
 
   return (
-    <div>
-      <h1>{bookData?.title}</h1>
-      {/* We will do the beautiful layout next */}
+    <div className="flex flex-col">
+      <BookCoverBackground book={book} />
+
+      <div className="p-6 text-center">
+        <h3 className="text-2xl font-bold">{book?.title}</h3>
+        <p className="text-gray-500">{book?.authors?.join(", ")}</p>
+      </div>
+
+      {/* Icons row */}
+      <div className="flex gap-6 my-4 justify-around">
+        {/* <button className="text-blue-500">📖</button>
+        <button className="text-blue-500">✏️</button>
+        <button className="text-blue-500">⭐</button> */}
+      </div>
     </div>
   );
 }
