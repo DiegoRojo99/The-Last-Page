@@ -27,7 +27,7 @@ export default function BookDetails({ bookId }: BookPageProps) {
       const fetchBook = async () => {
         const bookSnap = await getDoc(bookRef);
         if (bookSnap.exists()) {
-          let bookDetails = bookSnap.data() as bookDB;
+          const bookDetails = bookSnap.data() as bookDB;
           setBook(bookDetails);
         } 
         else {
@@ -36,7 +36,7 @@ export default function BookDetails({ bookId }: BookPageProps) {
       };
       fetchBook();
     }
-  }, [loading, user]);
+  }, [loading, user, bookId]);
 
   return (
     <div className="flex flex-col">
