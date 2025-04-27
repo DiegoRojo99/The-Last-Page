@@ -58,9 +58,10 @@ export async function POST(req: NextRequest) {
     };
 
     // Add the new book to the user's books collection
-    const bookAddition = await booksRef.add(newBook);
+    const bookDoc = booksRef.doc(newBook.id);
+    await bookDoc.set(newBook);
 
-    return NextResponse.json({ id: bookAddition.id });
+    return NextResponse.json({ id: bookDoc.id });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Unauthorized or Error adding book" }, { status: 401 });
