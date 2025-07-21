@@ -1,19 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { userBook, readingSession } from '@/app/utils/types/booksDB';
 import { FiClock, FiBookOpen, FiPlus, FiTrendingUp, FiCalendar } from 'react-icons/fi';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface ReadingProgressProps {
   bookId: string;
 }
 
 export default function ReadingProgress({ bookId }: ReadingProgressProps) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [book, setBook] = useState<userBook | null>(null);
   const [sessions, setSessions] = useState<readingSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,23 +26,9 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
   });
   const router = useRouter();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-        fetchBookData(user);
-        fetchSessions(user);
-      } else {
-        router.push('/login');
-      }
-    });
-
-    return () => unsubscribe();
-  }, [bookId, router]);
-
-  const fetchBookData = async (user: any) => {
+  const fetchBookData = useCallback(async (currentUser: User) => {
     try {
-      const token = await user.getIdToken();
+      const token = await currentUser.getIdToken();
       const response = await fetch(`/api/user/books/${bookId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -55,11 +42,11 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
     } catch (error) {
       console.error('Error fetching book data:', error);
     }
-  };
+  }, [bookId]);
 
-  const fetchSessions = async (user: any) => {
+  const fetchSessions = useCallback(async (currentUser: User) => {
     try {
-      const token = await user.getIdToken();
+      const token = await currentUser.getIdToken();
       const response = await fetch(`/api/user/books/${bookId}/sessions`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -75,7 +62,21 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [bookId]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user);
+        fetchBookData(user);
+        fetchSessions(user);
+      } else {
+        router.push('/login');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [bookId, router, fetchBookData, fetchSessions]);
 
   const handleAddSession = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,9 +109,23 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
     }
   };
 
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp: unknown) => {
     if (!timestamp) return '';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    
+    let date: Date;
+    
+    // Check if it's a Firestore Timestamp with toDate method
+    if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp) {
+      const firebaseTimestamp = timestamp as { toDate: () => Date };
+      date = firebaseTimestamp.toDate();
+    } else if (typeof timestamp === 'string') {
+      date = new Date(timestamp);
+    } else if (timestamp instanceof Date) {
+      date = timestamp;
+    } else {
+      return '';
+    }
+    
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
@@ -146,9 +161,11 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
         <div className="flex items-start gap-4">
           <div className="w-24 h-32 bg-gray-200 rounded-md flex items-center justify-center flex-shrink-0">
             {book.coverImage ? (
-              <img 
+              <Image 
                 src={book.coverImage} 
-                alt={book.title} 
+                alt={book.title}
+                width={96}
+                height={128}
                 className="w-full h-full object-cover rounded-md"
               />
             ) : (

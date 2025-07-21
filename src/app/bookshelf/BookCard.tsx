@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from "react";
+import React from "react";
 import { userBook } from "../utils/types/booksDB";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,15 +12,13 @@ interface BookCardProps {
 }
 
 export function BookCard({ book }: BookCardProps) {
-  const [refreshKey, setRefreshKey] = useState(0);
-  
   const progressPercentage = book.totalPages && book.currentPage 
     ? Math.min((book.currentPage / book.totalPages) * 100, 100)
     : 0;
 
   const handleSessionAdded = () => {
-    setRefreshKey(prev => prev + 1);
     // In a real app, you might want to refetch the book data here
+    // For now, we'll rely on the parent component to refresh
   };
 
   return (

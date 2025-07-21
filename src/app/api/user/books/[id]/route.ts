@@ -2,6 +2,7 @@ import { CompleteUserBook } from "@/app/utils/types/booksAPI";
 import { userBook } from "@/app/utils/types/booksDB";
 import { adminAuth, adminDB } from "@/lib/firebase-admin";
 import { NextRequest, NextResponse } from "next/server";
+import { Timestamp } from 'firebase-admin/firestore';
 
 // Google Books API URL
 const GOOGLE_BOOKS_API_URL = 'https://www.googleapis.com/books/v1/volumes';
@@ -86,8 +87,14 @@ export async function PUT(req: NextRequest) {
 
     const currentData = bookDoc.data() as userBook;
     
-    // Update fields
-    const updateData: Partial<userBook> = {};
+    // Update fields using a typed object
+    const updateData: {
+      currentPage?: number;
+      status?: string;
+      notes?: string;
+      startedAt?: FirebaseFirestore.Timestamp;
+      completedAt?: FirebaseFirestore.Timestamp;
+    } = {};
     
     if (body.currentPage !== undefined) {
       updateData.currentPage = body.currentPage;
@@ -98,9 +105,9 @@ export async function PUT(req: NextRequest) {
       
       // Set timestamps based on status changes
       if (body.status === 'reading' && !currentData.startedAt) {
-        updateData.startedAt = new Date() as any;
+        updateData.startedAt = Timestamp.now();
       } else if (body.status === 'completed' && !currentData.completedAt) {
-        updateData.completedAt = new Date() as any;
+        updateData.completedAt = Timestamp.now();
       }
     }
     
