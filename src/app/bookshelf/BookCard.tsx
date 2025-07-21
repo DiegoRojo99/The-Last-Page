@@ -4,7 +4,7 @@ import React from "react";
 import { userBook } from "../utils/types/booksDB";
 import Image from "next/image";
 import Link from "next/link";
-import { FiBarChart2 } from "react-icons/fi";
+import { FiEye } from "react-icons/fi";
 import QuickSessionAdd from "../components/QuickSessionAdd";
 
 interface BookCardProps {
@@ -24,7 +24,7 @@ export function BookCard({ book }: BookCardProps) {
   return (
     <div className="flex flex-col items-center w-fit h-fit group">
       {/* Cover Image */}
-      <Link href={`/books/${book.id}`} className="relative">
+      <Link href={`/bookshelf/${book.id}`} className="relative">
         {book.coverImage ? (
           <Image
             src={book.coverImage} 
@@ -78,19 +78,19 @@ export function BookCard({ book }: BookCardProps) {
              book.status.charAt(0).toUpperCase() + book.status.slice(1)}
           </span>
           
-          {/* Progress Link */}
+          {/* Book Details Link */}
           <Link
-            href={`/bookshelf/${book.id}`}
+            href={`/books/${book.id}`}
             className="text-gray-400 hover:text-blue-600 transition-colors p-1"
-            title="View reading progress"
+            title="View book details"
           >
-            <FiBarChart2 className="text-sm" />
+            <FiEye className="text-sm" />
           </Link>
         </div>
         
         {/* Actions for reading books */}
         {book.status === 'reading' && (
-          <div className="flex items-center gap-1 mt-1">
+          <div className="flex w-full gap-1 mt-1">
             <QuickSessionAdd bookId={book.id} onSessionAdded={handleSessionAdded} />
           </div>
         )}
