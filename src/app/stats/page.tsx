@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/lib/currentUser';
 import { 
-  FiBookOpen, FiClock, FiTrendingUp, FiAward, FiCalendar, 
-  FiUsers, FiTarget, FiHeart, FiBarChart, FiPieChart,
+  FiBookOpen, FiClock, FiTrendingUp, FiAward,
+  FiUsers, FiTarget, FiHeart, FiBarChart,
   FiActivity, FiStar, FiBook
 } from 'react-icons/fi';
 
@@ -52,7 +51,6 @@ export default function StatsPage() {
   const { user, loading } = useCurrentUser();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [fetchLoading, setFetchLoading] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     if (loading || !user) return;
@@ -95,12 +93,6 @@ export default function StatsPage() {
 
   const getTopAuthors = (authorStats: { [key: string]: number }, limit: number = 5) => {
     return Object.entries(authorStats)
-      .sort(([,a], [,b]) => b - a)
-      .slice(0, limit);
-  };
-
-  const getTopGenres = (genreDistribution: { [key: string]: number }, limit: number = 5) => {
-    return Object.entries(genreDistribution)
       .sort(([,a], [,b]) => b - a)
       .slice(0, limit);
   };

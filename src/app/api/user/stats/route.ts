@@ -1,6 +1,23 @@
 import { adminAuth, adminDB } from "@/lib/firebase-admin";
 import { NextRequest, NextResponse } from "next/server";
 
+interface UserBook {
+  id: string;
+  status?: string;
+  totalPages?: number;
+  genre?: string;
+  authors?: string[];
+  [key: string]: unknown;
+}
+
+interface ReadingSession {
+  id: string;
+  bookId: string;
+  durationMinutes?: number;
+  pagesRead?: number;
+  [key: string]: unknown;
+}
+
 async function verifyUser(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 
@@ -61,10 +78,10 @@ export async function GET(req: NextRequest) {
       .collection('books')
       .get();
 
-    const books = booksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+    const books = booksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as UserBook[];
 
     // Fetch all reading sessions across all books
-    let allSessions: any[] = [];
+    const allSessions: ReadingSession[] = [];
     for (const book of books) {
       const sessionsSnapshot = await adminDB
         .collection('users')
@@ -78,7 +95,7 @@ export async function GET(req: NextRequest) {
         id: doc.id,
         bookId: book.id,
         ...doc.data()
-      }));
+      })) as ReadingSession[];
       allSessions.push(...sessions);
     }
 
@@ -89,7 +106,12 @@ export async function GET(req: NextRequest) {
       .collection('wishlist')
       .get();
 
-    const wishlistBooks = wishlistSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+    const wishlistBooks = wishlistSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Array<{
+      id: string;
+      addedAt?: unknown;
+      authors?: string[];
+      [key: string]: unknown;
+    }>;
 
     // Calculate book statistics
     const bookStats: BookStats = {
@@ -155,8 +177,8 @@ export async function GET(req: NextRequest) {
       // Calculate reading speed (pages per minute)
       const sessionsWithPages = allSessions.filter(s => s.pagesRead && s.pagesRead > 0);
       if (sessionsWithPages.length > 0) {
-        const totalPagesInSessions = sessionsWithPages.reduce((sum, session) => sum + session.pagesRead, 0);
-        const totalTimeInSessions = sessionsWithPages.reduce((sum, session) => sum + session.durationMinutes, 0);
+        const totalPagesInSessions = sessionsWithPages.reduce((sum, session) => sum + (session.pagesRead || 0), 0);
+        const totalTimeInSessions = sessionsWithPages.reduce((sum, session) => sum + (session.durationMinutes || 0), 0);
         readingStats.averageReadingSpeed = parseFloat((totalPagesInSessions / totalTimeInSessions).toFixed(2));
       }
 
@@ -238,13 +260,13 @@ export async function GET(req: NextRequest) {
   }
 }
 
-function getDateFromTimestamp(timestamp: any): Date {
+function getDateFromTimestamp(timestamp: unknown): Date {
   if (!timestamp) return new Date();
   
   if (typeof timestamp === 'object' && timestamp !== null && '_seconds' in timestamp) {
-    return new Date(timestamp._seconds * 1000);
+    return new Date((timestamp as { _seconds: number })._seconds * 1000);
   } else if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp) {
-    return timestamp.toDate();
+    return (timestamp as { toDate: () => Date }).toDate();
   } else if (typeof timestamp === 'string') {
     return new Date(timestamp);
   } else if (timestamp instanceof Date) {

@@ -491,7 +491,7 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
                     {/* Notes */}
                     {session.notes && (
                       <div className="mt-3 p-3 bg-gray-50 rounded-lg border-l-4 border-blue-200">
-                        <p className="text-sm text-gray-700 italic">"{session.notes}"</p>
+                        <p className="text-sm text-gray-700 italic">&ldquo;{session.notes}&rdquo;</p>
                       </div>
                     )}
                   </div>

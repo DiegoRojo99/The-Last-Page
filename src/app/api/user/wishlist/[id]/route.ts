@@ -1,6 +1,5 @@
 import { adminAuth, adminDB } from "@/lib/firebase-admin";
 import { NextRequest, NextResponse } from "next/server";
-import { Timestamp } from 'firebase-admin/firestore';
 
 async function verifyUser(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");

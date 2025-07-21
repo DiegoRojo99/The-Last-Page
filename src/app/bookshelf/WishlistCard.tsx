@@ -4,7 +4,7 @@ import React from "react";
 import { wishlistBook } from "../utils/types/booksDB";
 import Image from "next/image";
 import Link from "next/link";
-import { FiEye, FiPlus, FiX } from "react-icons/fi";
+import { FiEye, FiPlus } from "react-icons/fi";
 import WishlistAction from "../components/WishlistAction";
 import { auth } from "@/lib/firebase";
 
@@ -40,14 +40,14 @@ export function WishlistCard({ book, onRemoved, onMoveToLibrary }: WishlistCardP
     }
   };
 
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp: unknown) => {
     if (!timestamp) return '';
     
     let date: Date;
     if (typeof timestamp === 'object' && timestamp !== null && '_seconds' in timestamp) {
-      date = new Date(timestamp._seconds * 1000);
+      date = new Date((timestamp as { _seconds: number })._seconds * 1000);
     } else if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp) {
-      date = timestamp.toDate();
+      date = (timestamp as { toDate: () => Date }).toDate();
     } else if (typeof timestamp === 'string') {
       date = new Date(timestamp);
     } else if (timestamp instanceof Date) {
