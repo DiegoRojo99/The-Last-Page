@@ -55,7 +55,7 @@ const BookSearch: React.FC<BookSearchProps> = ({ bookSelection, isModal = false 
       
       {!loading && !error && hasSearched && books.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No books found for "{query}"</p>
+          <p className="text-gray-500 text-lg">No books found for &quot;{query}&quot;</p>
           <p className="text-gray-400 mt-2">Try adjusting your search terms</p>
         </div>
       )}

@@ -30,7 +30,7 @@ export default function BookSearchItem({ book, onSelect, isModal = false }: Book
     bookDescription = `${bookDescription.substring(0, 200)}...`; 
   }
   
-  let bookTitle = bookInfo.title;
+  const bookTitle = bookInfo.title;
   if (!bookTitle) return null;
 
   const handleAddToBookshelf = async () => {

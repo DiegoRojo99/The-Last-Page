@@ -152,7 +152,7 @@ export default function BookDetails({ bookId }: BookPageProps) {
               )}
               {book.volumeInfo.industryIdentifiers && book.volumeInfo.industryIdentifiers.length > 0 && (
                 <div>
-                  {book.volumeInfo.industryIdentifiers.map((identifier: any, index: number) => (
+                  {book.volumeInfo.industryIdentifiers.map((identifier, index: number) => (
                     <p key={index} className="text-gray-600">
                       <span className="font-medium">{identifier.type}:</span> {identifier.identifier}
                     </p>

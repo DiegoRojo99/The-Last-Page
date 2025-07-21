@@ -67,7 +67,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Reading Status</h3>
               <p className="text-gray-600">
-                Track what you're reading, want to read, and have finished
+                Track what you&apos;re reading, want to read, and have finished
               </p>
             </div>
 

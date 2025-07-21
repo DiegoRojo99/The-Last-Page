@@ -1,4 +1,4 @@
-import { Book, CompleteUserBook } from "@/app/utils/types/booksAPI";
+import { Book } from "@/app/utils/types/booksAPI";
 import Image from "next/image";
 
 export default function BookCoverBackground({ book }: { book: Book | null }) {
