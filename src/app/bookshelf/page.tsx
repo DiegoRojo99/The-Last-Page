@@ -14,13 +14,13 @@ export default function BookshelfPage() {
   const [books, setBooks] = useState<userBook[]>([]);
   const [selectedTab, setSelectedTab] = useState<bookStatus>('reading');
   const [fetchLoading, setFetchLoading] = useState(false);
+  const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
     if(loading || !user) return; // Wait for user to be loaded
     async function fetchBooks() {
       try {
         setFetchLoading(true);
-        console.log("Fetching books...");
         const token = await user?.getIdToken();
         if (!token) {
           console.error("Failed to retrieve authentication token.");
@@ -33,7 +33,6 @@ export default function BookshelfPage() {
           }
         });
         const data = await res.json();
-        console.log("Fetched books:", data);
         setBooks(data);
       } 
       catch (error) {
@@ -44,7 +43,7 @@ export default function BookshelfPage() {
     }
 
     fetchBooks();
-  }, [loading, user]);
+  }, [loading, user, refresh]);
 
   function handleTabChange(tab: bookStatus) {
     setSelectedTab(tab);
@@ -153,7 +152,7 @@ export default function BookshelfPage() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
             ) : filteredBooks.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              <div className="flex flex-wrap gap-4">
                 {filteredBooks.map(book => (
                   <BookCard key={book.id} book={book} />
                 ))}
@@ -186,7 +185,7 @@ export default function BookshelfPage() {
         </div>
       </div>
 
-      {isModalOpen && <AddBookModal onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && <AddBookModal onClose={() => setIsModalOpen(false)} refreshData={() => setRefresh(prev => !prev)} />}
     </div>
   );
 }
