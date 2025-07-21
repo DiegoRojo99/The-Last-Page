@@ -14,6 +14,22 @@ interface ReadingProgressProps {
   bookId: string;
 }
 
+const getTimestamp = (date: unknown) => {
+  if (!date) return 0;
+  if (typeof date === 'object' && date !== null && 'toDate' in date) {
+    return (date as { toDate: () => Date }).toDate().getTime();
+  } else if (typeof date === 'object' && date !== null && '_seconds' in date) {
+    // Handle Firestore timestamp object with _seconds and _nanoseconds
+    const firestoreTimestamp = date as { _seconds: number; _nanoseconds: number };
+    return firestoreTimestamp._seconds * 1000 + firestoreTimestamp._nanoseconds / 1000000;
+  } else if (typeof date === 'string') {
+    return new Date(date).getTime();
+  } else if (date instanceof Date) {
+    return date.getTime();
+  }
+  return 0;
+};
+
 export default function ReadingProgress({ bookId }: ReadingProgressProps) {
   const [user, setUser] = useState<User | null>(null);
   const [book, setBook] = useState<CompleteUserBook | null>(null);
@@ -23,6 +39,7 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
   const [sessionData, setSessionData] = useState({
     durationMinutes: '',
     pagesRead: '',
+    sessionDate: `${new Date().toISOString().slice(0, 16)}`, // Default to current date and time
     notes: ''
   });
   const router = useRouter();
@@ -77,12 +94,13 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
         body: JSON.stringify({
           durationMinutes: parseInt(sessionData.durationMinutes),
           pagesRead: sessionData.pagesRead ? parseInt(sessionData.pagesRead) : undefined,
+          sessionDate: sessionData.sessionDate ? new Date(sessionData.sessionDate) : undefined,
           notes: sessionData.notes || undefined
         })
       });
 
       if (response.ok) {
-        setSessionData({ durationMinutes: '', pagesRead: '', notes: '' });
+        setSessionData({ durationMinutes: '', pagesRead: '', notes: '', sessionDate: '' });
         setShowAddSession(false);
         fetchBookData(user);
       }
@@ -100,11 +118,16 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
     if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp) {
       const firebaseTimestamp = timestamp as { toDate: () => Date };
       date = firebaseTimestamp.toDate();
+    } else if (typeof timestamp === 'object' && timestamp !== null && '_seconds' in timestamp) {
+      // Handle Firestore timestamp object with _seconds and _nanoseconds
+      const firestoreTimestamp = timestamp as { _seconds: number; _nanoseconds: number };
+      date = new Date(firestoreTimestamp._seconds * 1000 + firestoreTimestamp._nanoseconds / 1000000);
     } else if (typeof timestamp === 'string') {
       date = new Date(timestamp);
     } else if (timestamp instanceof Date) {
       date = timestamp;
     } else {
+      console.warn('Invalid timestamp format:', timestamp);
       return '';
     }
     
@@ -125,7 +148,6 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
     );
   }
 
-  console.log('Book:', book);
   if (!book) {
     return (
       <div className="max-w-4xl mx-auto p-6">
@@ -150,6 +172,7 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
                 width={96}
                 height={128}
                 className="w-full h-full object-cover rounded-md"
+                unoptimized
               />
             ) : (
               <FiBookOpen className="text-gray-400 text-2xl" />
@@ -266,6 +289,17 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
+                Session Date
+              </label>
+              <input
+                type="datetime-local"
+                value={sessionData.sessionDate}
+                onChange={(e) => setSessionData(prev => ({ ...prev, sessionDate: e.target.value }))}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Notes
               </label>
               <textarea
@@ -307,11 +341,19 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
               <p className="text-sm">Add your first session to start tracking your progress!</p>
             </div>
           ) : (
-            sessions.map((session) => (
+            sessions
+              .sort((a, b) => {
+                return getTimestamp(a.sessionDate) - getTimestamp(b.sessionDate);
+              })
+              .map((session) => (
               <div key={session.id} className="p-6">
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                      <span className="flex items-center gap-1">
+                        <FiCalendar className="text-xs" />
+                        {formatDate(session.sessionDate)}
+                      </span>
                       <span className="flex items-center gap-1">
                         <FiClock className="text-xs" />
                         {session.durationMinutes} minutes
@@ -327,9 +369,6 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
                       <p className="text-gray-700 text-sm mb-2">{session.notes}</p>
                     )}
                   </div>
-                  <span className="text-xs text-gray-500">
-                    {formatDate(session.sessionDate)}
-                  </span>
                 </div>
               </div>
             ))

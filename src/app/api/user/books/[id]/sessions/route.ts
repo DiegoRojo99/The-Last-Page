@@ -58,13 +58,30 @@ export async function GET(
   }
 }
 
+function getTimestampFromDate(date: Date | Timestamp): Timestamp {
+  if (date instanceof Timestamp) {
+    return date;
+  } 
+  else if (date instanceof Date) {
+    return Timestamp.fromDate(date);
+  } 
+  else if (typeof date === 'string') {
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      return Timestamp.now();
+    }
+    return Timestamp.fromDate(parsedDate);
+  } 
+  else {
+    return Timestamp.now();
+  }
+}
+
 export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ bookId: string }> }
+  request: NextRequest
 ) {
   try {
-    const { bookId } = await params;
-    
+    const bookId = request.nextUrl.pathname.replace('/sessions', '').split("/").pop();
     if (!bookId) {
       return NextResponse.json({ error: 'Book ID is required' }, { status: 400 });
     }
@@ -79,19 +96,20 @@ export async function POST(
     const userId = decodedToken.uid;
 
     const body = await request.json();
-    const { durationMinutes, pagesRead, notes } = body;
+    const { durationMinutes, pagesRead, notes, sessionDate } = body;
 
     if (!durationMinutes || durationMinutes <= 0) {
       return NextResponse.json({ error: 'Duration must be provided and greater than 0' }, { status: 400 });
     }
 
     // Create new reading session
+    const timestamp = getTimestampFromDate(sessionDate || new Date());
     const sessionData = {
       bookId,
       durationMinutes,
-      pagesRead: pagesRead || undefined,
-      sessionDate: Timestamp.now(),
-      notes: notes || undefined
+      pagesRead: pagesRead || 0,
+      sessionDate: timestamp,
+      notes: notes || ''
     };
 
     const sessionRef = await adminDB
