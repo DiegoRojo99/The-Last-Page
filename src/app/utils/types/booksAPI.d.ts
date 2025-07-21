@@ -2,16 +2,22 @@ import { userBook } from "./booksDB";
 
 type VolumeInfo = {
   title: string;
-  authors: string[];
-  publisher: string;
-  publishedDate: string;
-  description: string;
-  imageLinks: {
-    thumbnail: string;
-    smallThumbnail: string;
+  subtitle?: string;
+  authors?: string[];
+  publisher?: string;
+  publishedDate?: string;
+  description?: string;
+  imageLinks?: {
+    thumbnail?: string;
+    smallThumbnail?: string;
   };
-  pageCount: number;
-  categories: string[];
+  pageCount?: number;
+  categories?: string[];
+  language?: string;
+  industryIdentifiers?: {
+    type: string;
+    identifier: string;
+  }[];
 };
 
 interface Book {

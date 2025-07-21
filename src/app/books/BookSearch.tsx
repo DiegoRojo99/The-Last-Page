@@ -13,12 +13,14 @@ const BookSearch: React.FC<BookSearchProps> = ({ bookSelection }) => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
 
     setLoading(true);
     setError('');
+    setHasSearched(true);
     try {
       const response = await fetch(`/api/books/search?q=${encodeURIComponent(query)}`);
       if (!response.ok) {
@@ -50,7 +52,7 @@ const BookSearch: React.FC<BookSearchProps> = ({ bookSelection }) => {
         </div>
       )}
       
-      {!loading && !error && query && books.length === 0 && (
+      {!loading && !error && hasSearched && books.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">No books found for "{query}"</p>
           <p className="text-gray-400 mt-2">Try adjusting your search terms</p>
