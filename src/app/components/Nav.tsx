@@ -32,6 +32,9 @@ const Navbar = () => {
           <Link href="/bookshelf" className="hover:text-gray-400">
             Bookshelf
           </Link>
+          <Link href="/books" className="hover:text-gray-400">
+            Search
+          </Link>
           {user ? (
             <>
               <span className="hover:text-gray-400 cursor-pointer" onClick={handleLogout}>
