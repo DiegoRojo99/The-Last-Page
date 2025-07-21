@@ -1,4 +1,5 @@
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { FiBook, FiSearch, FiBookmark, FiTrendingUp } from 'react-icons/fi';
 
@@ -8,6 +9,15 @@ export default function Home() {
       {/* Hero Section */}
       <section className="pt-20 pb-16 px-4">
         <div className="max-w-6xl mx-auto text-center">
+          <div className="mb-8">
+            <Image
+              src="/images/undraw_book-lover_m9n3.svg" 
+              alt="Logo" 
+              width={800} 
+              height={622} 
+              className="w-[450px] h-auto mx-auto"
+            />
+          </div>
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
             The Last <span className="text-blue-600">Page</span>
           </h1>
