@@ -1,21 +1,21 @@
 "use client";
 
 import React from "react";
-import { FaPlus } from "react-icons/fa";
+import { FiPlus } from "react-icons/fi";
 
 interface AddBookButtonProps {
   handleClick: () => void;
 }
 
 export default function AddBookButton({ handleClick }: AddBookButtonProps) {
-
   return (
     <button
       onClick={handleClick}
-      className="cursor-pointer p-2 bg-green-600 text-white rounded-full shadow-md hover:bg-blue-700 transition"
+      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
       aria-label="Add Book"
     >
-      <FaPlus size={12} />
+      <FiPlus size={16} />
+      <span className="hidden sm:inline">Add Book</span>
     </button>
   );
 }
