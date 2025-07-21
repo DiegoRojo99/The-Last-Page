@@ -5,6 +5,7 @@ import { Book } from "../utils/types/booksAPI";
 import { FiPlus, FiCheck, FiBookOpen } from 'react-icons/fi';
 import Link from "next/link";
 import { auth } from "@/lib/firebase";
+import WishlistAction from "../components/WishlistAction";
 
 interface BookSearchItemProps {
   book: Book;
@@ -140,7 +141,7 @@ export default function BookSearchItem({ book, onSelect, isModal = false }: Book
           <button
             onClick={onSelect ?? handleAddToBookshelf}
             disabled={isAdding || isAdded}
-            className={`${isModal ? 'w-full' : 'flex-1'} px-3 py-2 rounded-lg font-medium text-xs transition-colors ${
+            className={`flex-2 px-3 py-2 rounded-lg font-medium text-xs transition-colors ${
               isAdded
                 ? 'bg-green-100 text-green-800 cursor-default'
                 : isAdding
@@ -148,6 +149,7 @@ export default function BookSearchItem({ book, onSelect, isModal = false }: Book
                 : 'bg-blue-600 text-white hover:bg-blue-700'
             }`}
           >
+            <div className="flex items-center justify-center gap-1">
             {isAdded ? (
               <>
                 <FiCheck className="inline mr-1 text-xs" />
@@ -161,12 +163,23 @@ export default function BookSearchItem({ book, onSelect, isModal = false }: Book
                 Add
               </>
             )}
+            </div>
           </button>
+
+          <div className="flex-1 flex items-center justify-center">
+            <WishlistAction
+              bookId={book.id}
+              title={bookInfo.title}
+              authors={bookInfo.authors}
+              coverImage={bookInfo.imageLinks?.thumbnail}
+              className="text-xs"
+            />
+          </div>
 
           {!isModal && (
             <Link
               href={`/books/${book.id}`}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-xs font-medium"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-xs font-medium justify-center flex items-center flex-2"
             >
               Details
             </Link>

@@ -3,16 +3,17 @@
 import { bookStatus } from "../utils/types/booksDB";
 
 interface BookshelfTabsProps {
-  selectedTab: bookStatus;
-  onTabChange: (tab: bookStatus) => void;
+  selectedTab: bookStatus | 'wishlist';
+  onTabChange: (tab: bookStatus | 'wishlist') => void;
 }
 
 export default function BookshelfTabs({ selectedTab, onTabChange }: BookshelfTabsProps) {
-  const tabs: { label: string; value: bookStatus; color: string }[] = [
+  const tabs: { label: string; value: bookStatus | 'wishlist'; color: string }[] = [
     { label: "Currently Reading", value: "reading", color: "blue" },
     { label: "Want to Read", value: "notStarted", color: "orange" },
     { label: "Completed", value: "completed", color: "green" },
     { label: "Abandoned", value: "abandoned", color: "gray" },
+    { label: "Wishlist", value: "wishlist", color: "red" },
   ];
 
   return (

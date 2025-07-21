@@ -4,21 +4,23 @@ import React, { useEffect, useState } from "react";
 import BookshelfTabs from "./BookshelfTabs";
 import AddBookButton from "./AddBookButton";
 import { AddBookModal } from "./AddBookModal";
-import { bookStatus, userBook } from "../utils/types/booksDB";
+import { bookStatus, userBook, wishlistBook } from "../utils/types/booksDB";
 import { BookCard } from "./BookCard";
+import { WishlistCard } from "./WishlistCard";
 import { useCurrentUser } from "@/lib/currentUser";
 
 export default function BookshelfPage() {
   const { user, loading } = useCurrentUser();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [books, setBooks] = useState<userBook[]>([]);
-  const [selectedTab, setSelectedTab] = useState<bookStatus>('reading');
+  const [wishlist, setWishlist] = useState<wishlistBook[]>([]);
+  const [selectedTab, setSelectedTab] = useState<bookStatus | 'wishlist'>('reading');
   const [fetchLoading, setFetchLoading] = useState(false);
   const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
     if(loading || !user) return; // Wait for user to be loaded
-    async function fetchBooks() {
+    async function fetchData() {
       try {
         setFetchLoading(true);
         const token = await user?.getIdToken();
@@ -26,30 +28,43 @@ export default function BookshelfPage() {
           console.error("Failed to retrieve authentication token.");
           return; // Exit if token is not available
         }
-        const res = await fetch('/api/user/books', {
+        
+        // Fetch books
+        const booksRes = await fetch('/api/user/books', {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           }
         });
-        const data = await res.json();
-        setBooks(data);
+        const booksData = await booksRes.json();
+        setBooks(booksData);
+
+        // Fetch wishlist
+        const wishlistRes = await fetch('/api/user/wishlist', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          }
+        });
+        const wishlistData = await wishlistRes.json();
+        setWishlist(wishlistData.wishlist || []);
       } 
       catch (error) {
-        console.error("Error fetching books:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setFetchLoading(false);
       }
     }
 
-    fetchBooks();
+    fetchData();
   }, [loading, user, refresh]);
 
-  function handleTabChange(tab: bookStatus) {
+  function handleTabChange(tab: bookStatus | 'wishlist') {
     setSelectedTab(tab);
   }
 
-  const filteredBooks = books.filter(book => book.status === selectedTab);
+  const filteredBooks = selectedTab === 'wishlist' ? [] : books.filter(book => book.status === selectedTab);
+  const displayItems = selectedTab === 'wishlist' ? wishlist : filteredBooks;
 
   // Get counts for each status
   const bookCounts = {
@@ -57,6 +72,7 @@ export default function BookshelfPage() {
     completed: books.filter(b => b.status === 'completed').length,
     notStarted: books.filter(b => b.status === 'notStarted').length,
     abandoned: books.filter(b => b.status === 'abandoned').length,
+    wishlist: wishlist.length,
   };
 
   if (loading) {
@@ -98,7 +114,7 @@ export default function BookshelfPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Statistics Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           <div className="bg-white p-4 rounded-lg shadow-sm border">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">{bookCounts.reading}</div>
@@ -123,6 +139,12 @@ export default function BookshelfPage() {
               <div className="text-sm text-gray-600">Abandoned</div>
             </div>
           </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">{bookCounts.wishlist}</div>
+              <div className="text-sm text-gray-600">Wishlist</div>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -139,9 +161,10 @@ export default function BookshelfPage() {
                 {selectedTab === 'completed' && 'Completed Books'}
                 {selectedTab === 'notStarted' && 'Want to Read'}
                 {selectedTab === 'abandoned' && 'Abandoned Books'}
-                {filteredBooks.length > 0 && (
+                {selectedTab === 'wishlist' && 'Wishlist'}
+                {displayItems.length > 0 && (
                   <span className="text-gray-500 font-normal ml-2">
-                    ({filteredBooks.length})
+                    ({displayItems.length})
                   </span>
                 )}
               </h2>
@@ -151,11 +174,22 @@ export default function BookshelfPage() {
               <div className="flex justify-center items-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
-            ) : filteredBooks.length > 0 ? (
+            ) : displayItems.length > 0 ? (
               <div className="flex flex-wrap gap-4 justify-start">
-                {filteredBooks.map(book => (
-                  <BookCard key={book.id} book={book} />
-                ))}
+                {selectedTab === 'wishlist' ? (
+                  wishlist.map(book => (
+                    <WishlistCard 
+                      key={book.id} 
+                      book={book} 
+                      onRemoved={() => setRefresh(prev => !prev)}
+                      onMoveToLibrary={() => setRefresh(prev => !prev)}
+                    />
+                  ))
+                ) : (
+                  filteredBooks.map(book => (
+                    <BookCard key={book.id} book={book} />
+                  ))
+                )}
               </div>
             ) : (
               <div className="text-center py-12">
@@ -165,19 +199,20 @@ export default function BookshelfPage() {
                   </svg>
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No books in this category
+                  {selectedTab === 'wishlist' ? 'No books in your wishlist' : 'No books in this category'}
                 </h3>
                 <p className="text-gray-600 mb-4">
                   {selectedTab === 'reading' && 'Start reading a book to see it here.'}
                   {selectedTab === 'completed' && 'Books you\'ve finished will appear here.'}
                   {selectedTab === 'notStarted' && 'Add books you want to read to see them here.'}
                   {selectedTab === 'abandoned' && 'Books you\'ve stopped reading will appear here.'}
+                  {selectedTab === 'wishlist' && 'Books you want to buy or read later will appear here.'}
                 </p>
                 <button
                   onClick={() => setIsModalOpen(true)}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Add Your First Book
+                  {selectedTab === 'wishlist' ? 'Browse Books' : 'Add Your First Book'}
                 </button>
               </div>
             )}
