@@ -141,8 +141,8 @@ export async function POST(
         await bookRef.update({
           currentPage,
           status,
-          ...(status === 'reading' && !currentData?.startedAt ? { startedAt: Timestamp.now() } : {}),
-          ...(status === 'completed' && !currentData?.completedAt ? { completedAt: Timestamp.now() } : {})
+          ...(status === 'reading' && !currentData?.startedAt ? { startedAt: timestamp } : {}),
+          ...(status === 'completed' && !currentData?.completedAt ? { completedAt: timestamp } : {})
         });
       }
     }
