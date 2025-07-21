@@ -38,6 +38,7 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
   const [showAddSession, setShowAddSession] = useState(false);
   const [editingTotalPages, setEditingTotalPages] = useState(false);
   const [newTotalPages, setNewTotalPages] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
   const [sessionData, setSessionData] = useState({
     durationMinutes: '',
     pagesRead: '',
@@ -86,6 +87,7 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
     if (!user || !sessionData.durationMinutes) return;
 
     try {
+      setIsAdding(true);
       const token = await user.getIdToken();
       const response = await fetch(`/api/user/books/${bookId}/sessions`, {
         method: 'POST',
@@ -108,6 +110,9 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
       }
     } catch (error) {
       console.error('Error adding session:', error);
+    }
+    finally {
+      setIsAdding(false);
     }
   };
 
@@ -168,8 +173,8 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
       console.warn('Invalid timestamp format:', timestamp);
       return '';
     }
-    
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    return date.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const totalMinutes = sessions.reduce((sum, session) => sum + session.durationMinutes, 0);
@@ -402,10 +407,11 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
             </div>
             <div className="flex gap-2">
               <button
+                disabled={isAdding}
                 type="submit"
                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
               >
-                Add Session
+                {isAdding ? 'Adding...' : 'Add Session'}
               </button>
               <button
                 type="button"
@@ -421,43 +427,84 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
 
       {/* Reading Sessions */}
       <div className="bg-white rounded-lg shadow-sm border">
-        <div className="p-6 border-b">
-          <h3 className="text-lg font-semibold text-gray-900">Reading Sessions</h3>
+        <div className="p-4 sm:p-6 border-b">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">Reading Sessions</h3>
+            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+              {sessions.length} session{sessions.length !== 1 ? 's' : ''}
+            </span>
+          </div>
         </div>
-        <div className="divide-y">
+        <div className="divide-y divide-gray-100">
           {sessions.length === 0 ? (
-            <div className="p-6 text-center text-gray-500">
-              <FiCalendar className="mx-auto text-4xl mb-2" />
-              <p>No reading sessions yet.</p>
-              <p className="text-sm">Add your first session to start tracking your progress!</p>
+            <div className="p-6 sm:p-8 text-center text-gray-500">
+              <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiCalendar className="text-gray-400 text-2xl" />
+              </div>
+              <p className="text-lg font-medium text-gray-600 mb-2">No reading sessions yet</p>
+              <p className="text-sm text-gray-500">Add your first session to start tracking your progress!</p>
             </div>
           ) : (
             sessions
               .sort((a, b) => {
-                return getTimestamp(a.sessionDate) - getTimestamp(b.sessionDate);
+                return getTimestamp(b.sessionDate) - getTimestamp(a.sessionDate);
               })
-              .map((session) => (
-              <div key={session.id} className="p-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
-                      <span className="flex items-center gap-1">
-                        <FiCalendar className="text-xs" />
+              .map((session, index) => (
+              <div key={session.id} className="p-4 sm:p-6 hover:bg-gray-50 transition-colors">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div className="flex-1">
+                    {/* Date and primary info */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="bg-blue-100 p-1.5 rounded-full">
+                        <FiCalendar className="text-blue-600 text-xs" />
+                      </div>
+                      <span className="font-medium text-gray-900 text-sm">
                         {formatDate(session.sessionDate)}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <FiClock className="text-xs" />
-                        {session.durationMinutes} minutes
-                      </span>
-                      {session.pagesRead && (
-                        <span className="flex items-center gap-1">
-                          <FiBookOpen className="text-xs" />
-                          {session.pagesRead} pages
+                      {index === 0 && (
+                        <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-medium">
+                          Latest
                         </span>
                       )}
                     </div>
+                    
+                    {/* Stats */}
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-600 mb-2">
+                      <span className="flex items-center gap-1.5">
+                        <div className="bg-orange-100 p-1 rounded">
+                          <FiClock className="text-orange-600 text-xs" />
+                        </div>
+                        <span className="font-medium">{session.durationMinutes}</span>
+                        <span className="text-gray-500">min</span>
+                      </span>
+                      {session.pagesRead && session.pagesRead > 0 && (
+                        <span className="flex items-center gap-1.5">
+                          <div className="bg-purple-100 p-1 rounded">
+                            <FiBookOpen className="text-purple-600 text-xs" />
+                          </div>
+                          <span className="font-medium">{session.pagesRead}</span>
+                          <span className="text-gray-500">page{session.pagesRead !== 1 ? 's' : ''}</span>
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Notes */}
                     {session.notes && (
-                      <p className="text-gray-700 text-sm mb-2">{session.notes}</p>
+                      <div className="mt-3 p-3 bg-gray-50 rounded-lg border-l-4 border-blue-200">
+                        <p className="text-sm text-gray-700 italic">"{session.notes}"</p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Mobile-friendly session number */}
+                  <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-1">
+                    <div className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full font-mono">
+                      #{sessions.length - index}
+                    </div>
+                    {session.pagesRead && session.pagesRead > 0 && (
+                      <div className="text-xs text-gray-400 hidden sm:block">
+                        {(session.pagesRead / session.durationMinutes).toFixed(1)} p/min
+                      </div>
                     )}
                   </div>
                 </div>
