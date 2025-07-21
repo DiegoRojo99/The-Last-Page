@@ -96,9 +96,12 @@ export async function PUT(req: NextRequest) {
     }
 
     const uid = await verifyUser(req);
-    const body = await req.json();
+    if (!uid) { 
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     
     // Get current book data
+    const body = await req.json();
     const bookRef = adminDB.doc(`users/${uid}/books/${bookId}`);
     const bookDoc = await bookRef.get();
     if (!bookDoc.exists) { 
@@ -110,6 +113,7 @@ export async function PUT(req: NextRequest) {
     // Update fields using a typed object
     const updateData: {
       currentPage?: number;
+      totalPages?: number;
       status?: string;
       notes?: string;
       startedAt?: FirebaseFirestore.Timestamp;
@@ -120,19 +124,29 @@ export async function PUT(req: NextRequest) {
       updateData.currentPage = body.currentPage;
     }
     
+    if (body.totalPages !== undefined) {
+      updateData.totalPages = body.totalPages;
+    }
+    
     if (body.status !== undefined) {
       updateData.status = body.status;
       
       // Set timestamps based on status changes
       if (body.status === 'reading' && !currentData.startedAt) {
         updateData.startedAt = Timestamp.now();
-      } else if (body.status === 'completed' && !currentData.completedAt) {
+      } 
+      else if (body.status === 'completed' && !currentData.completedAt) {
         updateData.completedAt = Timestamp.now();
       }
     }
     
     if (body.notes !== undefined) {
       updateData.notes = body.notes;
+    }
+
+    // Check if there's at least one field to update
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ error: "No fields to update" }, { status: 400 });
     }
 
     await bookRef.update(updateData);
@@ -144,6 +158,6 @@ export async function PUT(req: NextRequest) {
   } 
   catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Unauthorized or Error updating book" }, { status: 401 });
+    return NextResponse.json({ error: "Error updating book" }, { status: 400 });
   }
 }

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { readingSession } from '@/app/utils/types/booksDB';
-import { FiClock, FiBookOpen, FiPlus, FiTrendingUp, FiCalendar } from 'react-icons/fi';
+import { FiClock, FiBookOpen, FiPlus, FiTrendingUp, FiCalendar, FiEdit2, FiSave, FiX } from 'react-icons/fi';
 import Link from 'next/link';
 import Image from 'next/image';
 import { CompleteUserBook } from '@/app/utils/types/booksAPI';
@@ -36,6 +36,8 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
   const [sessions, setSessions] = useState<readingSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddSession, setShowAddSession] = useState(false);
+  const [editingTotalPages, setEditingTotalPages] = useState(false);
+  const [newTotalPages, setNewTotalPages] = useState('');
   const [sessionData, setSessionData] = useState({
     durationMinutes: '',
     pagesRead: '',
@@ -107,6 +109,42 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
     } catch (error) {
       console.error('Error adding session:', error);
     }
+  };
+
+  const handleUpdateTotalPages = async () => {
+    if (!user || !newTotalPages) return;
+
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch(`/api/user/books/${bookId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          totalPages: parseInt(newTotalPages)
+        })
+      });
+
+      if (response.ok) {
+        setEditingTotalPages(false);
+        setNewTotalPages('');
+        fetchBookData(user);
+      }
+    } catch (error) {
+      console.error('Error updating total pages:', error);
+    }
+  };
+
+  const startEditingTotalPages = () => {
+    setEditingTotalPages(true);
+    setNewTotalPages(book?.userInfo.totalPages?.toString() || '');
+  };
+
+  const cancelEditingTotalPages = () => {
+    setEditingTotalPages(false);
+    setNewTotalPages('');
   };
 
   const formatDate = (timestamp: unknown) => {
@@ -193,9 +231,62 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
                 {book.userInfo.status === 'notStarted' ? 'Not Started' : 
                  book.userInfo.status.charAt(0).toUpperCase() + book.userInfo.status.slice(1)}
               </span>
-              {book.userInfo.totalPages && (
-                <span>{book.userInfo.currentPage || 0} / {book.userInfo.totalPages} pages</span>
-              )}
+              <div className="flex items-center gap-2">
+                {editingTotalPages ? (
+                  <div className="flex items-center gap-2">
+                    <span>{book.userInfo.currentPage || 0} /</span>
+                    <input
+                      type="number"
+                      value={newTotalPages}
+                      onChange={(e) => setNewTotalPages(e.target.value)}
+                      className="w-20 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      min="1"
+                      autoFocus
+                    />
+                    <span>pages</span>
+                    <button
+                      onClick={handleUpdateTotalPages}
+                      className="text-green-600 hover:text-green-700 p-1"
+                      title="Save"
+                    >
+                      <FiSave className="text-xs" />
+                    </button>
+                    <button
+                      onClick={cancelEditingTotalPages}
+                      className="text-red-600 hover:text-red-700 p-1"
+                      title="Cancel"
+                    >
+                      <FiX className="text-xs" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    {book.userInfo.totalPages ? (
+                      <>
+                        <span>{book.userInfo.currentPage || 0} / {book.userInfo.totalPages} pages</span>
+                        <button
+                          onClick={startEditingTotalPages}
+                          className="text-gray-400 hover:text-gray-600 p-1"
+                          title="Edit total pages"
+                        >
+                          <FiEdit2 className="text-xs" />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <span>{book.userInfo.currentPage || 0} pages read</span>
+                        <button
+                          onClick={startEditingTotalPages}
+                          className="text-blue-600 hover:text-blue-700 text-xs px-2 py-1 border border-blue-200 rounded hover:bg-blue-50"
+                          title="Add total pages"
+                        >
+                          Add total pages
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
