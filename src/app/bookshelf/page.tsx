@@ -126,7 +126,7 @@ export default function BookshelfPage() {
         </div>
 
         {/* Tabs */}
-        <div className="mb-6 overflow-x-scroll">
+        <div className="mb-6 overflow-x-auto">
           <BookshelfTabs selectedTab={selectedTab} onTabChange={handleTabChange} />
         </div>
 
