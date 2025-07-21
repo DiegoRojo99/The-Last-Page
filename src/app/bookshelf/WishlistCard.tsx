@@ -101,7 +101,7 @@ export function WishlistCard({ book, onRemoved, onMoveToLibrary }: WishlistCardP
           </p>
         )}
         
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-xs text-gray-500 mt-1">
           Added {formatDate(book.addedAt)}
         </p>
         
@@ -109,7 +109,7 @@ export function WishlistCard({ book, onRemoved, onMoveToLibrary }: WishlistCardP
         <div className="flex items-center justify-between mt-2 gap-1">
           <button
             onClick={handleMoveToLibrary}
-            className="flex-1 bg-blue-600 text-white text-xs px-2 py-1 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+            className="flex-1 bg-gray-800 text-white text-xs px-2 py-1 rounded hover:bg-gray-500 transition-colors flex items-center justify-center gap-1"
             title="Add to library"
           >
             <FiPlus className="text-xs" />
@@ -118,7 +118,7 @@ export function WishlistCard({ book, onRemoved, onMoveToLibrary }: WishlistCardP
           
           <Link
             href={`/books/${book.id}`}
-            className="text-gray-400 hover:text-blue-600 transition-colors p-1"
+            className="text-gray-500 hover:text-gray-800 transition-colors p-1"
             title="View book details"
           >
             <FiEye className="text-sm" />

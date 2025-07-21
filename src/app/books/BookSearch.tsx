@@ -43,7 +43,7 @@ const BookSearch: React.FC<BookSearchProps> = ({ bookSelection, isModal = false 
       
       {loading && (
         <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-800"></div>
         </div>
       )}
       
@@ -56,7 +56,7 @@ const BookSearch: React.FC<BookSearchProps> = ({ bookSelection, isModal = false 
       {!loading && !error && hasSearched && books.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">No books found for &quot;{query}&quot;</p>
-          <p className="text-gray-400 mt-2">Try adjusting your search terms</p>
+          <p className="text-gray-500 mt-2">Try adjusting your search terms</p>
         </div>
       )}
       

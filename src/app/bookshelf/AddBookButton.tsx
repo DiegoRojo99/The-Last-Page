@@ -11,7 +11,7 @@ export default function AddBookButton({ handleClick }: AddBookButtonProps) {
   return (
     <button
       onClick={handleClick}
-      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+      className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-500 transition-colors font-medium shadow-sm"
       aria-label="Add Book"
     >
       <FiPlus size={16} />

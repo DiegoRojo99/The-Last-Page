@@ -100,7 +100,7 @@ export default function StatsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-800"></div>
       </div>
     );
   }
@@ -119,7 +119,7 @@ export default function StatsPage() {
   if (fetchLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-800"></div>
       </div>
     );
   }
@@ -148,7 +148,7 @@ export default function StatsPage() {
               </p>
             </div>
             <div className="bg-blue-100 p-3 rounded-full">
-              <FiBarChart className="text-blue-600 text-2xl" />
+              <FiBarChart className="text-gray-800 text-2xl" />
             </div>
           </div>
         </div>
@@ -160,7 +160,7 @@ export default function StatsPage() {
           <div className="bg-white p-6 rounded-lg shadow-sm border">
             <div className="flex items-center">
               <div className="bg-blue-100 p-3 rounded-full mr-4">
-                <FiBook className="text-blue-600 text-xl" />
+                <FiBook className="text-gray-800 text-xl" />
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-900">{stats.bookStats.totalBooks}</h3>
@@ -214,7 +214,7 @@ export default function StatsPage() {
           <div className="bg-white rounded-lg shadow-sm border">
             <div className="p-6 border-b">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                <FiBookOpen className="mr-2 text-blue-600" />
+                <FiBookOpen className="mr-2 text-gray-800" />
                 Book Statistics
               </h3>
             </div>
@@ -385,7 +385,7 @@ export default function StatsPage() {
               
               <div className="text-center">
                 <div className="bg-blue-100 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
-                  <FiBookOpen className="text-blue-600 text-2xl" />
+                  <FiBookOpen className="text-gray-800 text-2xl" />
                 </div>
                 <h4 className="font-medium text-gray-900">Reading Progress</h4>
                 <p className="text-sm text-gray-600 mt-1">

@@ -34,7 +34,7 @@ export default function LoginPage() {
       {/* <h1 className="text-3xl font-semibold mb-6 text-gray-800">Login</h1> */}
       <button
         onClick={handleGoogleLogin}
-        className="flex items-center justify-center space-x-3 bg-blue-500 text-white py-2 px-6 rounded-lg shadow-md hover:bg-blue-600 transition-all duration-200"
+        className="flex items-center justify-center space-x-3 bg-gray-700 text-white py-2 px-6 rounded-lg shadow-md hover:bg-gray-800 transition-all duration-200"
       >
         <FaGoogle className="text-lg" />
         <span className="text-lg">Login with Google</span>

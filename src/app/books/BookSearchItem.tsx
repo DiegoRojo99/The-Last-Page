@@ -91,7 +91,7 @@ export default function BookSearchItem({ book, onSelect, isModal = false }: Book
             unoptimized
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400">
+          <div className="w-full h-full flex items-center justify-center text-gray-500">
             <FiBookOpen className={`${isModal ? 'text-2xl' : 'text-4xl'}`} />
           </div>
         )}
@@ -146,7 +146,7 @@ export default function BookSearchItem({ book, onSelect, isModal = false }: Book
                 ? 'bg-green-100 text-green-800 cursor-default'
                 : isAdding
                 ? 'bg-blue-100 text-blue-800 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-gray-800 text-white hover:bg-gray-500'
             }`}
           >
             <div className="flex items-center justify-center gap-1">

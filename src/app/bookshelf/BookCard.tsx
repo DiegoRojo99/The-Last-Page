@@ -81,7 +81,7 @@ export function BookCard({ book }: BookCardProps) {
           {/* Book Details Link */}
           <Link
             href={`/books/${book.id}`}
-            className="text-gray-400 hover:text-blue-600 transition-colors p-1"
+            className="text-gray-500 hover:text-gray-800 transition-colors p-1"
             title="View book details"
           >
             <FiEye className="text-sm" />

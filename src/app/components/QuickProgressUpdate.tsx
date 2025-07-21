@@ -59,7 +59,7 @@ export default function QuickProgressUpdate({ book, onUpdate }: QuickProgressUpd
         {!isEditing ? (
           <button
             onClick={() => setIsEditing(true)}
-            className="text-gray-400 hover:text-blue-600 transition-colors"
+            className="text-gray-500 hover:text-gray-800 transition-colors"
           >
             <FiEdit className="text-sm" />
           </button>
@@ -77,7 +77,7 @@ export default function QuickProgressUpdate({ book, onUpdate }: QuickProgressUpd
                 setIsEditing(false);
                 setCurrentPage(book.currentPage?.toString() || '0');
               }}
-              className="text-gray-400 hover:text-red-600 transition-colors"
+              className="text-gray-500 hover:text-red-600 transition-colors"
             >
               <FiX className="text-sm" />
             </button>
@@ -92,7 +92,7 @@ export default function QuickProgressUpdate({ book, onUpdate }: QuickProgressUpd
               type="number"
               value={currentPage}
               onChange={(e) => setCurrentPage(e.target.value)}
-              className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-gray-700 focus:border-gray-700"
               min="0"
               max={book.totalPages}
             />
@@ -107,7 +107,7 @@ export default function QuickProgressUpdate({ book, onUpdate }: QuickProgressUpd
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              className="bg-gray-800 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progressPercentage}%` }}
             ></div>
           </div>

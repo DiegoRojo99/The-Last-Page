@@ -19,7 +19,7 @@ export default function Home() {
             />
           </div>
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            The Last <span className="text-blue-600">Page</span>
+            The Last <span className="text-gray-800">Page</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Track your reading journey, discover new books, and never lose track of your literary adventures.
@@ -27,13 +27,13 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
               href="/bookshelf" 
-              className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="bg-gray-800 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-500 transition-colors"
             >
               My Bookshelf
             </Link>
             <Link 
               href="/books" 
-              className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold border-2 border-blue-600 hover:bg-blue-50 transition-colors"
+              className="bg-white text-gray-800 px-8 py-3 rounded-lg font-semibold border-2 border-gray-800 hover:bg-blue-50 transition-colors"
             >
               Search Books
             </Link>
@@ -51,7 +51,7 @@ export default function Home() {
             {/* Feature 1 */}
             <div className="text-center p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
               <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiBook className="text-2xl text-blue-600" />
+                <FiBook className="text-2xl text-gray-800" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Personal Library</h3>
               <p className="text-gray-600">
@@ -106,7 +106,7 @@ export default function Home() {
           </p>
           <Link 
             href="/bookshelf" 
-            className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-lg inline-block"
+            className="bg-gray-800 text-white px-8 py-4 rounded-lg font-semibold hover:bg-gray-500 transition-colors text-lg inline-block"
           >
             Get Started for Free
           </Link>

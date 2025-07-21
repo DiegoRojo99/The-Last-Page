@@ -79,7 +79,7 @@ export function AddBookModal({ onClose, refreshData }: AddBookModalProps) {
           <h2 className="text-2xl font-semibold text-gray-900">Add a Book</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-500 hover:text-gray-600 transition-colors"
             aria-label="Close modal"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

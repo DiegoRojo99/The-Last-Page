@@ -51,7 +51,7 @@ export default function QuickSessionAdd({ bookId, onSessionAdded }: QuickSession
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+        className="w-full text-xs bg-gray-800 text-white px-2 py-1 rounded hover:bg-gray-500 transition-colors flex items-center justify-center gap-1"
         title="Add quick reading session"
       >
         <FiPlus className="text-xs" />
@@ -75,7 +75,7 @@ export default function QuickSessionAdd({ bookId, onSessionAdded }: QuickSession
               type="number"
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-gray-700 focus:border-gray-700"
               placeholder="30"
               required
               min="1"
@@ -92,7 +92,7 @@ export default function QuickSessionAdd({ bookId, onSessionAdded }: QuickSession
               type="number"
               value={pages}
               onChange={(e) => setPages(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-gray-700 focus:border-gray-700"
               placeholder="10"
               min="0"
             />
@@ -102,7 +102,7 @@ export default function QuickSessionAdd({ bookId, onSessionAdded }: QuickSession
             <button
               type="submit"
               disabled={isAdding || !duration}
-              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="flex-1 bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-500 transition-colors disabled:opacity-50"
             >
               {isAdding ? 'Adding...' : 'Add Session'}
             </button>
