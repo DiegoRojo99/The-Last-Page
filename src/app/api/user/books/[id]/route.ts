@@ -1,5 +1,5 @@
 import { CompleteUserBook } from "@/app/utils/types/booksAPI";
-import { userBook } from "@/app/utils/types/booksDB";
+import { readingSession, userBook } from "@/app/utils/types/booksDB";
 import { adminAuth, adminDB } from "@/lib/firebase-admin";
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from 'firebase-admin/firestore';
@@ -23,12 +23,17 @@ async function verifyUser(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const bookId = req.nextUrl.pathname.split("/").pop();
+    console.log("Fetching book with ID:", bookId);
     if (!bookId) {
       throw new Error("Book ID is required");
     }
 
     // Get the user's books collection reference
     const uid = await verifyUser(req);
+    if (!uid) { 
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const bookRef = adminDB.doc(`users/${uid}/books/${bookId}`);
     const bookDoc = await bookRef.get();
     if (!bookDoc.exists) { throw new Error("Book not found"); }
@@ -53,17 +58,32 @@ export async function GET(req: NextRequest) {
     };
     const bookInfo = await fetchBookInfo(userBook.id);
 
+    // Get user reading sessions
+    const sessionsSnapshot = await adminDB
+      .collection('users')
+      .doc(uid)
+      .collection('books')
+      .doc(bookId)
+      .collection('readingSessions')
+      .get();
+
+    const sessions = sessionsSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    })) as readingSession[];
+
     const bookWithVolumeInfo: CompleteUserBook = {
       id: userBook.id,
       userInfo: { ...userBook },
       volumeInfo: bookInfo ? bookInfo.volumeInfo : null,
+      sessions
     };
 
     return NextResponse.json(bookWithVolumeInfo);
   } 
   catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Unauthorized or Error fetching book" }, { status: 401 });
+    return NextResponse.json({ error: "Error fetching book" }, { status: 404 });
   }
 }
 

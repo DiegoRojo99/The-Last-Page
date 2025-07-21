@@ -1,4 +1,4 @@
-import { userBook } from "./booksDB";
+import { readingSession, userBook } from "./booksDB";
 
 type VolumeInfo = {
   title: string;
@@ -29,6 +29,7 @@ interface CompleteUserBook {
   id: string;
   volumeInfo: VolumeInfo?;
   userInfo: userBook;
+  sessions: readingSession[];
 }
 
 export {

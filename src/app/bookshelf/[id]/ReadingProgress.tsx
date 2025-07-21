@@ -4,10 +4,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { userBook, readingSession } from '@/app/utils/types/booksDB';
+import { readingSession } from '@/app/utils/types/booksDB';
 import { FiClock, FiBookOpen, FiPlus, FiTrendingUp, FiCalendar } from 'react-icons/fi';
 import Link from 'next/link';
 import Image from 'next/image';
+import { CompleteUserBook } from '@/app/utils/types/booksAPI';
 
 interface ReadingProgressProps {
   bookId: string;
@@ -15,7 +16,7 @@ interface ReadingProgressProps {
 
 export default function ReadingProgress({ bookId }: ReadingProgressProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [book, setBook] = useState<userBook | null>(null);
+  const [book, setBook] = useState<CompleteUserBook | null>(null);
   const [sessions, setSessions] = useState<readingSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddSession, setShowAddSession] = useState(false);
@@ -27,6 +28,7 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
   const router = useRouter();
 
   const fetchBookData = useCallback(async (currentUser: User) => {
+    setLoading(true);
     try {
       const token = await currentUser.getIdToken();
       const response = await fetch(`/api/user/books/${bookId}`, {
@@ -37,28 +39,11 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
 
       if (response.ok) {
         const data = await response.json();
-        setBook(data.book);
+        setBook(data);
+        setSessions(data.sessions || []);
       }
     } catch (error) {
       console.error('Error fetching book data:', error);
-    }
-  }, [bookId]);
-
-  const fetchSessions = useCallback(async (currentUser: User) => {
-    try {
-      const token = await currentUser.getIdToken();
-      const response = await fetch(`/api/user/books/${bookId}/sessions`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSessions(data.sessions);
-      }
-    } catch (error) {
-      console.error('Error fetching sessions:', error);
     } finally {
       setLoading(false);
     }
@@ -69,14 +54,13 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
       if (user) {
         setUser(user);
         fetchBookData(user);
-        fetchSessions(user);
       } else {
         router.push('/login');
       }
     });
 
     return () => unsubscribe();
-  }, [bookId, router, fetchBookData, fetchSessions]);
+  }, [bookId, router, fetchBookData]);
 
   const handleAddSession = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,9 +84,7 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
       if (response.ok) {
         setSessionData({ durationMinutes: '', pagesRead: '', notes: '' });
         setShowAddSession(false);
-        // Refresh data
         fetchBookData(user);
-        fetchSessions(user);
       }
     } catch (error) {
       console.error('Error adding session:', error);
@@ -131,8 +113,8 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
 
   const totalMinutes = sessions.reduce((sum, session) => sum + session.durationMinutes, 0);
   const totalPages = sessions.reduce((sum, session) => sum + (session.pagesRead || 0), 0);
-  const progressPercentage = book?.totalPages && book?.currentPage 
-    ? Math.min((book.currentPage / book.totalPages) * 100, 100)
+  const progressPercentage = book?.userInfo.totalPages && book?.userInfo.currentPage
+    ? Math.min((book.userInfo.currentPage / book.userInfo.totalPages) * 100, 100)
     : 0;
 
   if (loading) {
@@ -143,6 +125,7 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
     );
   }
 
+  console.log('Book:', book);
   if (!book) {
     return (
       <div className="max-w-4xl mx-auto p-6">
@@ -160,10 +143,10 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
       <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
         <div className="flex items-start gap-4">
           <div className="w-24 h-32 bg-gray-200 rounded-md flex items-center justify-center flex-shrink-0">
-            {book.coverImage ? (
-              <Image 
-                src={book.coverImage} 
-                alt={book.title}
+            {book.userInfo.coverImage ? (
+              <Image
+                src={book.userInfo.coverImage}
+                alt={book.userInfo.title}
                 width={96}
                 height={128}
                 className="w-full h-full object-cover rounded-md"
@@ -173,29 +156,29 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
             )}
           </div>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">{book.title}</h1>
-            {book.authors && book.authors.length > 0 && (
-              <p className="text-gray-600 mb-2">by {book.authors.join(', ')}</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">{book.userInfo.title}</h1>
+            {book.userInfo.authors && book.userInfo.authors.length > 0 && (
+              <p className="text-gray-600 mb-2">by {book.userInfo.authors.join(', ')}</p>
             )}
             <div className="flex items-center gap-4 text-sm text-gray-500">
               <span className={`px-2 py-1 rounded text-xs font-medium ${
-                book.status === 'completed' ? 'bg-green-100 text-green-800' :
-                book.status === 'reading' ? 'bg-blue-100 text-blue-800' :
-                book.status === 'abandoned' ? 'bg-red-100 text-red-800' :
+                book.userInfo.status === 'completed' ? 'bg-green-100 text-green-800' :
+                book.userInfo.status === 'reading' ? 'bg-blue-100 text-blue-800' :
+                book.userInfo.status === 'abandoned' ? 'bg-red-100 text-red-800' :
                 'bg-gray-100 text-gray-800'
               }`}>
-                {book.status === 'notStarted' ? 'Not Started' : 
-                 book.status.charAt(0).toUpperCase() + book.status.slice(1)}
+                {book.userInfo.status === 'notStarted' ? 'Not Started' : 
+                 book.userInfo.status.charAt(0).toUpperCase() + book.userInfo.status.slice(1)}
               </span>
-              {book.totalPages && (
-                <span>{book.currentPage || 0} / {book.totalPages} pages</span>
+              {book.userInfo.totalPages && (
+                <span>{book.userInfo.currentPage || 0} / {book.userInfo.totalPages} pages</span>
               )}
             </div>
           </div>
         </div>
         
         {/* Progress Bar */}
-        {book.totalPages && book.totalPages > 0 && (
+        {book.userInfo.totalPages && book.userInfo.totalPages > 0 && (
           <div className="mt-4">
             <div className="flex justify-between text-sm text-gray-600 mb-1">
               <span>Reading Progress</span>

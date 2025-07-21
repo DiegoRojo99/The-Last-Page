@@ -3,20 +3,31 @@ import { adminAuth, adminDB } from '@/lib/firebase-admin';
 import { readingSession } from '@/app/utils/types/booksDB';
 import { Timestamp } from 'firebase-admin/firestore';
 
+async function verifyUser(req: NextRequest) {
+  const authHeader = req.headers.get("Authorization");
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    throw new Error("Unauthorized");
+  }
+
+  const idToken = authHeader.split("Bearer ")[1];
+  const decodedToken = await adminAuth.verifyIdToken(idToken);
+  return decodedToken.uid;
+}
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ bookId: string }> }
 ) {
   try {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '');
-    
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const bookId = request.nextUrl.pathname.replace('/sessions', '').split("/").pop();
+    if (!bookId) {
+      return NextResponse.json({ error: 'Book ID is required' }, { status: 400 });
     }
-
-    const decodedToken = await adminAuth.verifyIdToken(token);
-    const userId = decodedToken.uid;
-    const { bookId } = await params;
+    
+    const userId = await verifyUser(request);
+    if (!userId) { 
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     // Get reading sessions for the book
     const bookRef = adminDB.collection('users').doc(userId).collection('books').doc(bookId);
@@ -32,7 +43,6 @@ export async function GET(
       .collection('books')
       .doc(bookId)
       .collection('readingSessions')
-      .where('bookId', '==', bookId)
       .orderBy('sessionDate', 'desc')
       .get();
 
@@ -53,6 +63,12 @@ export async function POST(
   { params }: { params: Promise<{ bookId: string }> }
 ) {
   try {
+    const { bookId } = await params;
+    
+    if (!bookId) {
+      return NextResponse.json({ error: 'Book ID is required' }, { status: 400 });
+    }
+    
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     
     if (!token) {
@@ -61,7 +77,6 @@ export async function POST(
 
     const decodedToken = await adminAuth.verifyIdToken(token);
     const userId = decodedToken.uid;
-    const { bookId } = await params;
 
     const body = await request.json();
     const { durationMinutes, pagesRead, notes } = body;
