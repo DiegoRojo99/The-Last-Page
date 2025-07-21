@@ -35,14 +35,35 @@ const BookSearch: React.FC<BookSearchProps> = ({ bookSelection }) => {
   };
 
   return (
-    <div className='flex flex-col items-center justify-center'>
+    <div className='max-w-6xl mx-auto px-4 py-8'>
       <BookSearchBar searchValue={query} setSearchValue={setQuery} handleSearch={handleSearch} />
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {books.length === 0 ? (
-        <p>No books found.</p>
-      ) : (
-        <div className='flex flex-col items-center justify-center'>
+      
+      {loading && (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      )}
+      
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mt-6">
+          {error}
+        </div>
+      )}
+      
+      {!loading && !error && query && books.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">No books found for "{query}"</p>
+          <p className="text-gray-400 mt-2">Try adjusting your search terms</p>
+        </div>
+      )}
+      
+      {!loading && books.length > 0 && (
+        <div className="mt-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900">
+              Search Results ({books.length})
+            </h2>
+          </div>
           <BookSearchResult books={books} bookSelection={bookSelection} />
         </div>
       )}

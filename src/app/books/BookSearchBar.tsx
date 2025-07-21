@@ -1,3 +1,6 @@
+'use client';
+import { FiSearch } from 'react-icons/fi';
+
 type BookSearchBarProps = {
   searchValue: string;
   setSearchValue: (value: string) => void;
@@ -5,21 +8,32 @@ type BookSearchBarProps = {
 };
 
 export default function BookSearchBar({ searchValue, setSearchValue, handleSearch }: BookSearchBarProps) {
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   return (
-    <div className="flex items-center justify-between my-4">
-      <input
-        type="text"
-        value={searchValue}
-        onChange={(e) => setSearchValue(e.target.value)}
-        placeholder="Search for books..."
-        className="border border-gray-300 rounded px-4 py-2 w-full"
-      />
-      <button
-        onClick={handleSearch}
-        className="ml-2 bg-blue-500 text-white rounded px-4 py-2"
-      >
-        Search
-      </button>
+    <div className="max-w-2xl mx-auto mb-8">
+      <div className="relative">
+        <input
+          type="text"
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Search for books by title, author, or ISBN..."
+          className="w-full px-6 py-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none pl-14"
+        />
+        <FiSearch className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl" />
+        <button
+          onClick={handleSearch}
+          disabled={!searchValue.trim()}
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white rounded-lg px-6 py-2 font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+        >
+          Search
+        </button>
+      </div>
     </div>
   );
 }
