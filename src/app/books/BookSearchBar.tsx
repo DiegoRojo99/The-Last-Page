@@ -5,9 +5,10 @@ type BookSearchBarProps = {
   searchValue: string;
   setSearchValue: (value: string) => void;
   handleSearch: () => void;
+  isModal?: boolean;
 };
 
-export default function BookSearchBar({ searchValue, setSearchValue, handleSearch }: BookSearchBarProps) {
+export default function BookSearchBar({ searchValue, setSearchValue, handleSearch, isModal = false }: BookSearchBarProps) {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
@@ -15,7 +16,7 @@ export default function BookSearchBar({ searchValue, setSearchValue, handleSearc
   };
 
   return (
-    <div className="max-w-2xl mx-auto mb-8">
+    <div className={isModal ? "w-full mb-4" : "max-w-2xl mx-auto mb-8"}>
       <div className="relative">
         <input
           type="text"
@@ -23,9 +24,13 @@ export default function BookSearchBar({ searchValue, setSearchValue, handleSearc
           onChange={(e) => setSearchValue(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Search for books by title, author, or ISBN..."
-          className="w-full px-6 py-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none pl-14"
+          className={`w-full px-6 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none pl-14 ${
+            isModal ? 'py-3 text-base' : 'py-4 text-lg'
+          }`}
         />
-        <FiSearch className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl" />
+        <FiSearch className={`absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 ${
+          isModal ? 'text-lg' : 'text-xl'
+        }`} />
         <button
           onClick={handleSearch}
           disabled={!searchValue.trim()}

@@ -6,9 +6,10 @@ import BookSearchResult from './BookSearchResult';
 
 interface BookSearchProps {
   bookSelection?: (book: Book) => void;
+  isModal?: boolean;
 }
 
-const BookSearch: React.FC<BookSearchProps> = ({ bookSelection }) => {
+const BookSearch: React.FC<BookSearchProps> = ({ bookSelection, isModal = false }) => {
   const [query, setQuery] = useState('');
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
@@ -37,8 +38,8 @@ const BookSearch: React.FC<BookSearchProps> = ({ bookSelection }) => {
   };
 
   return (
-    <div className='max-w-6xl mx-auto px-4 py-8'>
-      <BookSearchBar searchValue={query} setSearchValue={setQuery} handleSearch={handleSearch} />
+    <div className={isModal ? 'w-full' : 'max-w-6xl mx-auto px-4 py-8'}>
+      <BookSearchBar searchValue={query} setSearchValue={setQuery} handleSearch={handleSearch} isModal={isModal} />
       
       {loading && (
         <div className="flex justify-center items-center py-12">
@@ -60,13 +61,15 @@ const BookSearch: React.FC<BookSearchProps> = ({ bookSelection }) => {
       )}
       
       {!loading && books.length > 0 && (
-        <div className="mt-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900">
-              Search Results ({books.length})
-            </h2>
-          </div>
-          <BookSearchResult books={books} bookSelection={bookSelection} />
+        <div className={isModal ? 'mt-6' : 'mt-8'}>
+          {!isModal && (
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900">
+                Search Results ({books.length})
+              </h2>
+            </div>
+          )}
+          <BookSearchResult books={books} bookSelection={bookSelection} isModal={isModal} />
         </div>
       )}
     </div>
