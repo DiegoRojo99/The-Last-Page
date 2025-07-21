@@ -35,7 +35,7 @@ const Navbar = () => {
 
   return (
     <nav className="bg-gray-800 text-white shadow-lg">
-      <div className="container mx-auto px-4">
+      <div className="mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
@@ -51,6 +51,9 @@ const Navbar = () => {
             </Link>
             <Link href="/books" className="hover:text-gray-300 transition-colors px-3 py-2 rounded-md text-sm font-medium">
               Search
+            </Link>
+            <Link href="/stats" className="hover:text-gray-300 transition-colors px-3 py-2 rounded-md text-sm font-medium">
+              Stats
             </Link>
             {user ? (
               <button 
@@ -97,6 +100,13 @@ const Navbar = () => {
               className="block px-3 py-2 rounded-md text-base font-medium hover:text-gray-300 hover:bg-gray-700 transition-colors"
             >
               Search
+            </Link>
+            <Link 
+              href="/stats" 
+              onClick={closeMobileMenu}
+              className="block px-3 py-2 rounded-md text-base font-medium hover:text-gray-300 hover:bg-gray-700 transition-colors"
+            >
+              Stats
             </Link>
             {user ? (
               <button 
