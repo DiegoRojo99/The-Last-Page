@@ -65,3 +65,58 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized or Error fetching book" }, { status: 401 });
   }
 }
+
+// PUT update a specific user book
+export async function PUT(req: NextRequest) {
+  try {
+    const bookId = req.nextUrl.pathname.split("/").pop();
+    if (!bookId) {
+      throw new Error("Book ID is required");
+    }
+
+    const uid = await verifyUser(req);
+    const body = await req.json();
+    
+    // Get current book data
+    const bookRef = adminDB.doc(`users/${uid}/books/${bookId}`);
+    const bookDoc = await bookRef.get();
+    if (!bookDoc.exists) { 
+      throw new Error("Book not found"); 
+    }
+
+    const currentData = bookDoc.data() as userBook;
+    
+    // Update fields
+    const updateData: Partial<userBook> = {};
+    
+    if (body.currentPage !== undefined) {
+      updateData.currentPage = body.currentPage;
+    }
+    
+    if (body.status !== undefined) {
+      updateData.status = body.status;
+      
+      // Set timestamps based on status changes
+      if (body.status === 'reading' && !currentData.startedAt) {
+        updateData.startedAt = new Date() as any;
+      } else if (body.status === 'completed' && !currentData.completedAt) {
+        updateData.completedAt = new Date() as any;
+      }
+    }
+    
+    if (body.notes !== undefined) {
+      updateData.notes = body.notes;
+    }
+
+    await bookRef.update(updateData);
+
+    return NextResponse.json({ 
+      message: "Book updated successfully",
+      book: { ...currentData, ...updateData }
+    });
+  } 
+  catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Unauthorized or Error updating book" }, { status: 401 });
+  }
+}

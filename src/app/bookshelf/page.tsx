@@ -152,7 +152,7 @@ export default function BookshelfPage() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
             ) : filteredBooks.length > 0 ? (
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-4 justify-between">
                 {filteredBooks.map(book => (
                   <BookCard key={book.id} book={book} />
                 ))}

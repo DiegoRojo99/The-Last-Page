@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore';
+
 type bookStatus = 'reading' | 'completed' | 'abandoned' | 'notStarted';
 
 type userBook = {
@@ -9,6 +11,7 @@ type userBook = {
   startedAt?: Timestamp;
   completedAt?: Timestamp;
   totalPages?: number;
+  currentPage?: number;
   notes?: string;
 }
 
