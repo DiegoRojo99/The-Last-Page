@@ -5,14 +5,16 @@ import { FiAlertCircle, FiCheckCircle, FiLoader, FiXCircle } from "react-icons/f
 import { auth } from "@/lib/firebase";
 import BookSearch from "../books/BookSearch";
 import { Book } from "../utils/types/booksAPI";
+import { normalizeGoogleBooksImageUrl } from "../utils/common";
 import { Button, Modal, useToast } from "../components/ui";
 
 interface AddBookModalProps {
   onClose: () => void;
   refreshData?: () => void;
+  onBookAdded?: () => void;
 }
 
-export function AddBookModal({ onClose, refreshData }: AddBookModalProps) {
+export function AddBookModal({ onClose, refreshData, onBookAdded }: AddBookModalProps) {
   const { pushToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -26,6 +28,7 @@ export function AddBookModal({ onClose, refreshData }: AddBookModalProps) {
 
   async function handleBookSelection(book: Book) {
     const title = book.volumeInfo.title || "book";
+    const normalizedCoverImage = normalizeGoogleBooksImageUrl(book.volumeInfo.imageLinks?.thumbnail) || null;
     setCurrentBookTitle(title);
     setSubmitError(null);
     setSuccessMessage(null);
@@ -52,7 +55,7 @@ export function AddBookModal({ onClose, refreshData }: AddBookModalProps) {
           id: book.id,
           title: book.volumeInfo.title,
           authors: book.volumeInfo.authors,
-          coverImage: book.volumeInfo.imageLinks?.thumbnail || null,
+          coverImage: normalizedCoverImage,
           status: "notStarted",
           startedAt: null,
           completedAt: null,
@@ -76,6 +79,7 @@ export function AddBookModal({ onClose, refreshData }: AddBookModalProps) {
         variant: "success",
       });
 
+      onBookAdded?.();
       refreshData?.();
       window.setTimeout(() => {
         onClose();

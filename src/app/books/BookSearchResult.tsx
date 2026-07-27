@@ -14,7 +14,7 @@ export default function BookSearchResult({ books, bookSelection, isModal, viewMo
         <BookSearchItem
           key={book.id}
           book={book}
-          onSelect={() => bookSelection && bookSelection(book)}
+          onSelect={bookSelection ? () => bookSelection(book) : undefined}
           isModal={isModal}
           viewMode={viewMode}
         />

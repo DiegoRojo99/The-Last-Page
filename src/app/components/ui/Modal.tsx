@@ -27,14 +27,14 @@ export function Modal({ open, title, onClose, children, className }: ModalProps)
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/45 p-4 md:items-center"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
         className={cn(
-          "surface-elevated w-full max-w-2xl animate-fade-up overflow-hidden",
+          "surface-elevated my-auto flex max-h-[calc(100vh-2rem)] w-full max-w-2xl animate-fade-up flex-col overflow-hidden",
           className,
         )}
       >
@@ -43,7 +43,7 @@ export function Modal({ open, title, onClose, children, className }: ModalProps)
             <h2 className="text-2xl">{title}</h2>
           </div>
         ) : null}
-        <div className="p-5">{children}</div>
+        <div className="min-h-0 overflow-y-auto p-5">{children}</div>
       </div>
     </div>
   );

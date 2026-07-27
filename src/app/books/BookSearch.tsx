@@ -28,15 +28,17 @@ const BookSearch: React.FC<BookSearchProps> = ({ bookSelection, isModal = false 
     try {
       const response = await fetch(`/api/books/search?q=${encodeURIComponent(query)}`);
       if (!response.ok) {
+        const body = await response.json().catch(() => null) as { error?: string } | null;
+        const apiMessage = body?.error;
         if (response.status === 503) throw new Error('Google Books is temporarily unavailable right now. Please retry in a moment.');
         if (response.status === 429) throw new Error('Google Books quota/rate limit is currently exhausted. Please try again later.');
-        throw new Error('Network response was not ok');
+        throw new Error(apiMessage || 'Search request failed. Please try again.');
       }
       const data = await response.json();
       setBooks(data);
     } catch (err) {
       console.error('Error fetching books:', err);
-      setError('Failed to fetch books. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to fetch books. Please try again.');
     } finally {
       setLoading(false);
     }

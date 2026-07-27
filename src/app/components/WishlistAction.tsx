@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { auth } from '@/lib/firebase';
 import { FiHeart, FiLoader } from 'react-icons/fi';
+import { normalizeGoogleBooksImageUrl } from '../utils/common';
 
 interface WishlistActionProps {
   bookId: string;
@@ -25,6 +26,7 @@ export default function WishlistAction({
 }: WishlistActionProps) {
   const [loading, setLoading] = useState(false);
   const [inWishlist, setInWishlist] = useState(isInWishlist);
+  const normalizedCoverImage = normalizeGoogleBooksImageUrl(coverImage);
 
   const handleWishlistToggle = async () => {
     const user = auth.currentUser;
@@ -65,7 +67,7 @@ export default function WishlistAction({
             id: bookId,
             title,
             authors: authors || [],
-            coverImage: coverImage || ''
+            coverImage: normalizedCoverImage
           })
         });
 

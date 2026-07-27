@@ -8,6 +8,7 @@ import { auth } from "@/lib/firebase";
 import WishlistAction from "../components/WishlistAction";
 import { wishlistBook } from "../utils/types/booksDB";
 import { Badge, Button } from "../components/ui";
+import { normalizeGoogleBooksImageUrl } from "../utils/common";
 
 interface WishlistCardProps {
   book: wishlistBook;
@@ -17,6 +18,7 @@ interface WishlistCardProps {
 
 export function WishlistCard({ book, onRemoved, onMoveToLibrary }: WishlistCardProps) {
   const [isMoving, setIsMoving] = useState(false);
+  const coverImageSrc = normalizeGoogleBooksImageUrl(book.coverImage);
 
   const handleMoveToLibrary = async () => {
     const user = auth.currentUser;
@@ -68,9 +70,9 @@ export function WishlistCard({ book, onRemoved, onMoveToLibrary }: WishlistCardP
   return (
     <article className="group flex w-[170px] flex-col gap-2">
       <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-[var(--neutral-200)] bg-[var(--neutral-100)] shadow-[var(--shadow-sm)] transition-all duration-[var(--motion-normal)] ease-[var(--motion-ease)] group-hover:-translate-y-1 group-hover:shadow-[var(--shadow-md)]">
-        {book.coverImage ? (
+        {coverImageSrc ? (
           <Image
-            src={book.coverImage}
+            src={coverImageSrc}
             alt={book.title}
             className="h-[240px] w-full object-cover"
             width={170}
@@ -88,7 +90,7 @@ export function WishlistCard({ book, onRemoved, onMoveToLibrary }: WishlistCardP
             bookId={book.id}
             title={book.title}
             authors={book.authors}
-            coverImage={book.coverImage}
+            coverImage={coverImageSrc}
             isInWishlist={true}
             onWishlistChange={onRemoved}
             className="border-0 bg-white/90 shadow-[var(--shadow-sm)]"

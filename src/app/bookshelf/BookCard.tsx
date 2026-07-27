@@ -7,6 +7,7 @@ import { FiArrowRight, FiBookOpen, FiEye } from "react-icons/fi";
 import QuickSessionAdd from "../components/QuickSessionAdd";
 import { userBook } from "../utils/types/booksDB";
 import { Badge, Button } from "../components/ui";
+import { normalizeGoogleBooksImageUrl } from "../utils/common";
 
 interface BookCardProps {
   book: userBook;
@@ -23,6 +24,7 @@ export function BookCard({ book }: BookCardProps) {
   const progressPercentage = book.totalPages && book.currentPage
     ? Math.min((book.currentPage / book.totalPages) * 100, 100)
     : 0;
+  const coverImageSrc = normalizeGoogleBooksImageUrl(book.coverImage);
 
   const statusMeta = getStatusMeta(book.status);
 
@@ -32,9 +34,9 @@ export function BookCard({ book }: BookCardProps) {
         href={`/bookshelf/${book.id}`}
         className="relative block overflow-hidden rounded-[var(--radius-lg)] border border-[var(--neutral-200)] bg-[var(--neutral-100)] shadow-[var(--shadow-sm)] transition-all duration-[var(--motion-normal)] ease-[var(--motion-ease)] group-hover:-translate-y-1 group-hover:shadow-[var(--shadow-md)]"
       >
-        {book.coverImage ? (
+        {coverImageSrc ? (
           <Image
-            src={book.coverImage}
+            src={coverImageSrc}
             alt={book.title}
             className="h-[240px] w-full object-cover"
             width={170}

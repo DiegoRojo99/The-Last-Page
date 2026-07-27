@@ -67,9 +67,31 @@ function appendKey(url: URL) {
   if (key) url.searchParams.set('key', key);
 }
 
+function normalizeSearchQuery(query: string) {
+  const trimmed = query.trim();
+  if (!trimmed) return trimmed;
+
+  const isbnPrefixed = /^isbn(?:-1[03])?\s*[:\s]\s*(.+)$/i.exec(trimmed);
+  if (isbnPrefixed) {
+    const candidate = isbnPrefixed[1].replace(/[\s-]/g, '').toUpperCase();
+    return `isbn:${candidate}`;
+  }
+
+  const isbnCandidate = trimmed.replace(/[\s-]/g, '').toUpperCase();
+  const isIsbn10 = /^\d{9}[\dX]$/.test(isbnCandidate);
+  const isIsbn13 = /^\d{13}$/.test(isbnCandidate);
+
+  if (isIsbn10 || isIsbn13) {
+    return `isbn:${isbnCandidate}`;
+  }
+
+  return trimmed;
+}
+
 export async function googleBooksSearch(query: string) {
   const url = new URL(GOOGLE_BOOKS_API_URL);
-  url.searchParams.set('q', query);
+  const normalizedQuery = normalizeSearchQuery(query);
+  url.searchParams.set('q', normalizedQuery);
   url.searchParams.set('printType', 'books');
   url.searchParams.set('maxResults', '20');
   appendKey(url);
@@ -79,7 +101,25 @@ export async function googleBooksSearch(query: string) {
     next: { revalidate: 60 },
   });
 
-  return response.json();
+  const data = await response.json();
+
+  // Retry with a generic text query when an explicit ISBN search comes back empty.
+  if (normalizedQuery.startsWith('isbn:') && (!data.items || data.items.length === 0)) {
+    const fallbackUrl = new URL(GOOGLE_BOOKS_API_URL);
+    fallbackUrl.searchParams.set('q', query.trim());
+    fallbackUrl.searchParams.set('printType', 'books');
+    fallbackUrl.searchParams.set('maxResults', '20');
+    appendKey(fallbackUrl);
+
+    const fallbackResponse = await fetchWithRetry(fallbackUrl.toString(), {
+      headers: { 'User-Agent': 'TheLastPage/2.0', },
+      next: { revalidate: 60 },
+    });
+
+    return fallbackResponse.json();
+  }
+
+  return data;
 }
 
 export async function googleBookDetails(id: string) {

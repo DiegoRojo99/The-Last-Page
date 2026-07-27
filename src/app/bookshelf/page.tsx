@@ -53,7 +53,7 @@ export default function BookshelfPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [books, setBooks] = useState<userBook[]>([]);
   const [wishlist, setWishlist] = useState<wishlistBook[]>([]);
-  const [selectedTab, setSelectedTab] = useState<bookStatus | 'wishlist'>('reading');
+  const [selectedTab, setSelectedTab] = useState<bookStatus | 'wishlist'>('notStarted');
   const [fetchLoading, setFetchLoading] = useState(false);
   const [refresh, setRefresh] = useState(false);
 
@@ -76,7 +76,7 @@ export default function BookshelfPage() {
           }
         });
         const booksData = await booksRes.json();
-        setBooks(booksData);
+        setBooks(Array.isArray(booksData) ? booksData : []);
 
         const wishlistRes = await fetch('/api/user/wishlist', {
           headers: {
@@ -85,7 +85,7 @@ export default function BookshelfPage() {
           }
         });
         const wishlistData = await wishlistRes.json();
-        setWishlist(wishlistData.wishlist || []);
+        setWishlist(Array.isArray(wishlistData?.wishlist) ? wishlistData.wishlist : []);
       }
       catch (error) {
         console.error("Error fetching data:", error);
@@ -272,7 +272,13 @@ export default function BookshelfPage() {
         </div>
       </div>
 
-      {isModalOpen && <AddBookModal onClose={() => setIsModalOpen(false)} refreshData={() => setRefresh((prev) => !prev)} />}
+      {isModalOpen && (
+        <AddBookModal
+          onClose={() => setIsModalOpen(false)}
+          onBookAdded={() => setSelectedTab('notStarted')}
+          refreshData={() => setRefresh((prev) => !prev)}
+        />
+      )}
     </div>
   );
 }

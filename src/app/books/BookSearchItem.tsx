@@ -6,7 +6,8 @@ import { FiPlus, FiCheck, FiBookOpen, FiArrowRight } from 'react-icons/fi';
 import Link from "next/link";
 import { auth } from "@/lib/firebase";
 import WishlistAction from "../components/WishlistAction";
-import { Badge, Button } from "../components/ui";
+import { Badge, Button, useToast } from "../components/ui";
+import { normalizeGoogleBooksImageUrl } from "../utils/common";
 
 interface BookSearchItemProps {
   book: Book;
@@ -18,6 +19,7 @@ interface BookSearchItemProps {
 export default function BookSearchItem({ book, onSelect, isModal = false, viewMode = 'grid' }: BookSearchItemProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
+  const { pushToast } = useToast();
 
   if (!book.volumeInfo) {
     return (
@@ -37,6 +39,7 @@ export default function BookSearchItem({ book, onSelect, isModal = false, viewMo
   if (!bookTitle) return null;
 
   const publicationYear = bookInfo.publishedDate ? new Date(bookInfo.publishedDate).getFullYear() : null;
+  const normalizedCoverImage = normalizeGoogleBooksImageUrl(bookInfo.imageLinks?.thumbnail);
   const rootClass = isModal
     ? "surface-paper overflow-hidden"
     : viewMode === 'list'
@@ -52,14 +55,26 @@ export default function BookSearchItem({ book, onSelect, isModal = false, viewMo
         id: book.id,
         title: bookInfo.title,
         authors: bookInfo.authors || [],
-        coverImage: bookInfo.imageLinks?.thumbnail || '',
+        coverImage: normalizedCoverImage,
         status: 'notStarted' as const,
-        totalPages: bookInfo.pageCount
+        startedAt: null,
+        completedAt: null,
+        totalPages: bookInfo.pageCount || null,
+        currentPage: 0,
+        notes: null,
       };
       
       // Check if the user is authenticated
       const currentUser = auth.currentUser;
-      if (!currentUser) throw new Error("No authenticated user.");
+      if (!currentUser) {
+        pushToast({
+          title: 'Login required',
+          description: 'Please login to add books to your shelf.',
+          variant: 'warning',
+        });
+        window.location.href = '/login';
+        return;
+      }
 
       // Get the user's ID token
       const token = await currentUser.getIdToken();
@@ -76,11 +91,38 @@ export default function BookSearchItem({ book, onSelect, isModal = false, viewMo
 
       if (response.ok) {
         setIsAdded(true);
+        pushToast({
+          title: 'Book added',
+          description: `${bookInfo.title} was added to your bookshelf.`,
+          variant: 'success',
+        });
       } else {
-        console.error('Failed to add book to bookshelf');
+        const body = await response.json().catch(() => null) as { error?: string } | null;
+        const message = body?.error || (response.status === 409
+          ? 'This book is already in your library.'
+          : 'Failed to add book to bookshelf.');
+
+        if (response.status === 409) {
+          setIsAdded(true);
+        }
+
+        pushToast({
+          title: response.status === 409 ? 'Already in library' : 'Could not add book',
+          description: message,
+          variant: response.status === 409 ? 'info' : 'error',
+        });
+
+        if (response.status !== 409) {
+          console.error('Failed to add book to bookshelf:', message);
+        }
       }
     } catch (error) {
       console.error('Error adding book to bookshelf:', error);
+      pushToast({
+        title: 'Could not add book',
+        description: error instanceof Error ? error.message : 'Unexpected error while adding book.',
+        variant: 'error',
+      });
     } finally {
       setIsAdding(false);
     }
@@ -111,9 +153,9 @@ export default function BookSearchItem({ book, onSelect, isModal = false, viewMo
         <div className={`relative shrink-0 overflow-hidden rounded-[var(--radius-md)] bg-[var(--neutral-100)] ${
           isModal ? 'h-48' : viewMode === 'list' ? 'h-48 w-32' : 'h-72 w-full'
         }`}>
-          {bookInfo.imageLinks?.thumbnail ? (
+          {normalizedCoverImage ? (
             <Image
-              src={bookInfo.imageLinks.thumbnail}
+              src={normalizedCoverImage}
               alt={bookTitle}
               fill
               className="object-cover"
@@ -175,7 +217,7 @@ export default function BookSearchItem({ book, onSelect, isModal = false, viewMo
                 bookId={book.id}
                 title={bookInfo.title}
                 authors={bookInfo.authors}
-                coverImage={bookInfo.imageLinks?.thumbnail}
+                coverImage={normalizedCoverImage}
                 className="h-9 w-9"
               />
 
