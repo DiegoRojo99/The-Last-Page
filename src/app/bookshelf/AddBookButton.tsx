@@ -2,6 +2,7 @@
 
 import React from "react";
 import { FiPlus } from "react-icons/fi";
+import { Button } from "../components/ui";
 
 interface AddBookButtonProps {
   handleClick: () => void;
@@ -9,13 +10,13 @@ interface AddBookButtonProps {
 
 export default function AddBookButton({ handleClick }: AddBookButtonProps) {
   return (
-    <button
+    <Button
       onClick={handleClick}
-      className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-500 transition-colors font-medium shadow-sm"
+      className="shadow-[var(--shadow-sm)]"
       aria-label="Add Book"
     >
       <FiPlus size={16} />
       <span className="hidden sm:inline">Add Book</span>
-    </button>
+    </Button>
   );
 }

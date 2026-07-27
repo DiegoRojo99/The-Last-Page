@@ -1,19 +1,32 @@
 'use client';
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
-import { FiMenu, FiX } from "react-icons/fi";
+import { FiBookOpen, FiLogIn, FiLogOut, FiMenu, FiSearch, FiTrendingUp, FiX } from "react-icons/fi";
+import { cn } from "./ui/cn";
+
+const navigationItems = [
+  { href: "/bookshelf", label: "Bookshelf", icon: FiBookOpen },
+  { href: "/books", label: "Search", icon: FiSearch },
+  { href: "/stats", label: "Stats", icon: FiTrendingUp },
+];
 
 const Navbar = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
     });
 
     return () => unsubscribe();
@@ -25,106 +38,119 @@ const Navbar = () => {
     router.push("/login");
   };
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+  const isActiveRoute = (href: string) => {
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(`${href}/`);
   };
 
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
+  const linkClass = (active: boolean) =>
+    cn(
+      "inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-3 py-2 text-sm font-semibold transition-all duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
+      active
+        ? "bg-[var(--color-accent)] text-white shadow-[var(--shadow-sm)]"
+        : "text-[var(--neutral-700)] hover:bg-[var(--neutral-100)] hover:text-[var(--neutral-900)]",
+    );
 
   return (
-    <nav className="bg-gray-800 text-white shadow-lg">
-      <div className="mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div className="flex-shrink-0">
-            <Link href="/" className="text-xl font-bold hover:text-gray-300 transition-colors">
+    <nav className="sticky top-0 z-40 border-b border-[var(--neutral-200)] bg-white/78 backdrop-blur-xl">
+      <div className="app-container relative">
+        <div className="flex h-16 items-center justify-between">
+          <Link href="/" className="group inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-1 py-1 transition-colors">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-ink)] text-white">
+              <FiBookOpen className="text-sm" />
+            </span>
+            <span className="text-xl text-[var(--neutral-900)] transition-colors group-hover:text-[var(--color-accent)]">
               The Last Page
-            </Link>
-          </div>
+            </span>
+          </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex space-x-6">
-            <Link href="/bookshelf" className="hover:text-gray-300 transition-colors px-3 py-2 rounded-md text-sm font-medium">
-              Bookshelf
-            </Link>
-            <Link href="/books" className="hover:text-gray-300 transition-colors px-3 py-2 rounded-md text-sm font-medium">
-              Search
-            </Link>
-            <Link href="/stats" className="hover:text-gray-300 transition-colors px-3 py-2 rounded-md text-sm font-medium">
-              Stats
-            </Link>
+          <div className="hidden items-center gap-2 md:flex">
+            {navigationItems.map((item) => {
+              const active = isActiveRoute(item.href);
+              return (
+                <Link key={item.href} href={item.href} className={linkClass(active)}>
+                  <item.icon className="text-sm" />
+                  {item.label}
+                </Link>
+              );
+            })}
             {user ? (
-              <button 
-                onClick={handleLogout}
-                className="hover:text-gray-300 transition-colors px-3 py-2 rounded-md text-sm font-medium cursor-pointer"
-              >
+              <button onClick={handleLogout} className={linkClass(false)}>
+                <FiLogOut className="text-sm" />
                 Logout
               </button>
             ) : (
-              <Link href="/login" className="hover:text-gray-300 transition-colors px-3 py-2 rounded-md text-sm font-medium">
+              <Link href="/login" className={linkClass(isActiveRoute("/login"))}>
+                <FiLogIn className="text-sm" />
                 Login
               </Link>
             )}
           </div>
 
-          {/* Mobile menu button */}
           <div className="md:hidden">
             <button
-              onClick={toggleMobileMenu}
-              className="text-white hover:text-gray-300 focus:outline-none focus:text-gray-300 transition-colors p-2"
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              className="rounded-[var(--radius-sm)] border border-[var(--neutral-300)] bg-white p-2 text-[var(--neutral-700)] transition-colors hover:text-[var(--neutral-900)]"
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
             >
-              {isMobileMenuOpen ? (
-                <FiX className="h-6 w-6" />
-              ) : (
-                <FiMenu className="h-6 w-6" />
-              )}
+              {isMobileMenuOpen ? <FiX className="h-6 w-6" /> : <FiMenu className="h-6 w-6" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        <div className={`md:hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-          <div className="px-2 pt-2 pb-3 space-y-1 border-t border-gray-700">
-            <Link 
-              href="/bookshelf" 
-              onClick={closeMobileMenu}
-              className="block px-3 py-2 rounded-md text-base font-medium hover:text-gray-300 hover:bg-gray-700 transition-colors"
-            >
-              Bookshelf
-            </Link>
-            <Link 
-              href="/books" 
-              onClick={closeMobileMenu}
-              className="block px-3 py-2 rounded-md text-base font-medium hover:text-gray-300 hover:bg-gray-700 transition-colors"
-            >
-              Search
-            </Link>
-            <Link 
-              href="/stats" 
-              onClick={closeMobileMenu}
-              className="block px-3 py-2 rounded-md text-base font-medium hover:text-gray-300 hover:bg-gray-700 transition-colors"
-            >
-              Stats
-            </Link>
-            {user ? (
-              <button 
-                onClick={handleLogout}
-                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:text-gray-300 hover:bg-gray-700 transition-colors"
-              >
-                Logout
-              </button>
-            ) : (
-              <Link 
-                href="/login" 
-                onClick={closeMobileMenu}
-                className="block px-3 py-2 rounded-md text-base font-medium hover:text-gray-300 hover:bg-gray-700 transition-colors"
-              >
-                Login
-              </Link>
+        <div
+          className={cn(
+            "absolute left-0 right-0 top-full md:hidden",
+            isMobileMenuOpen ? "pointer-events-auto" : "pointer-events-none",
+          )}
+        >
+          <div
+            className={cn(
+              "app-container origin-top overflow-hidden rounded-b-[var(--radius-lg)] border border-t-0 border-[var(--neutral-200)] bg-[var(--color-paper)] shadow-[var(--shadow-md)] transition-all duration-[var(--motion-normal)] ease-[var(--motion-ease)]",
+              isMobileMenuOpen ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0",
             )}
+          >
+            <div className="space-y-1 p-3">
+              {navigationItems.map((item) => {
+                const active = isActiveRoute(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={cn(linkClass(active), "flex w-full")}
+                  >
+                    <item.icon className="text-sm" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+              {user ? (
+                <button onClick={handleLogout} className={cn(linkClass(false), "flex w-full")}>
+                  <FiLogOut className="text-sm" />
+                  Logout
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(linkClass(isActiveRoute("/login")), "flex w-full")}
+                >
+                  <FiLogIn className="text-sm" />
+                  Login
+                </Link>
+              )}
+            </div>
           </div>
+
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-label="Close mobile menu overlay"
+            className={cn(
+              "fixed inset-0 top-16 -z-10 bg-black/20 transition-opacity duration-[var(--motion-normal)] ease-[var(--motion-ease)]",
+              isMobileMenuOpen ? "opacity-100" : "opacity-0",
+            )}
+          />
         </div>
       </div>
     </nav>

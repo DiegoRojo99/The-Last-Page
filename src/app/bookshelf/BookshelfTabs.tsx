@@ -1,38 +1,22 @@
 "use client";
 
 import { bookStatus } from "../utils/types/booksDB";
+import { Tabs } from "../components/ui";
 
 interface BookshelfTabsProps {
   selectedTab: bookStatus | 'wishlist';
   onTabChange: (tab: bookStatus | 'wishlist') => void;
+  counts?: Partial<Record<bookStatus | 'wishlist', number>>;
 }
 
-export default function BookshelfTabs({ selectedTab, onTabChange }: BookshelfTabsProps) {
-  const tabs: { label: string; value: bookStatus | 'wishlist'; color: string }[] = [
-    { label: "Currently Reading", value: "reading", color: "blue" },
-    { label: "Want to Read", value: "notStarted", color: "black" },
-    { label: "Completed", value: "completed", color: "green" },
-    { label: "Abandoned", value: "abandoned", color: "red" },
-    { label: "Wishlist", value: "wishlist", color: "yellow" },
+export default function BookshelfTabs({ selectedTab, onTabChange, counts }: BookshelfTabsProps) {
+  const tabs: { label: string; value: bookStatus | 'wishlist'; badgeCount?: number }[] = [
+    { label: "Currently Reading", value: "reading", badgeCount: counts?.reading },
+    { label: "Want to Read", value: "notStarted", badgeCount: counts?.notStarted },
+    { label: "Completed", value: "completed", badgeCount: counts?.completed },
+    { label: "Abandoned", value: "abandoned", badgeCount: counts?.abandoned },
+    { label: "Wishlist", value: "wishlist", badgeCount: counts?.wishlist },
   ];
 
-  return (
-    <div className="border-b border-gray-200">
-      <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-        {tabs.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => onTabChange(tab.value)}
-            className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-              selectedTab === tab.value
-                ? `border-${tab.color}-500 text-${tab.color}-600`
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
-    </div>
-  );
+  return <Tabs items={tabs} value={selectedTab} onChange={onTabChange} />;
 }

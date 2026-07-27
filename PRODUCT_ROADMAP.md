@@ -4,61 +4,61 @@ This checklist breaks down the redesign and feature roadmap into small, trackabl
 
 ## Phase 0 - Planning and Baseline
 
-- [ ] Confirm product goals for v2 (modern UI, cleaner UX, series tracking)
-- [ ] Confirm what to reduce/simplify in current UX
-- [ ] Define launch scope (MVP vs later enhancements)
-- [ ] Create implementation branches strategy
-- [ ] Capture before screenshots for all major pages
-- [ ] Record baseline UX issues in a short audit
+- [x] Confirm product goals for v2 (modern UI, cleaner UX, series tracking)
+- [x] Confirm what to reduce/simplify in current UX
+- [x] Define launch scope (MVP vs later enhancements)
+- [x] Create implementation branches strategy
+- [x] Capture before screenshots for all major pages
+- [x] Record baseline UX issues in a short audit
 
 ## Phase 1 - Design System and Visual Direction
 
 ### 1.1 Brand and style foundation
-- [ ] Choose a visual direction (editorial, cinematic, minimalist, etc.)
-- [ ] Select primary display font
-- [ ] Select body font
-- [ ] Define core color palette
-- [ ] Define semantic colors (success, warning, danger, info)
-- [ ] Define neutral scale for text/surfaces/borders
-- [ ] Define spacing scale tokens
-- [ ] Define border radius scale
-- [ ] Define shadow scale
-- [ ] Define motion durations and easing tokens
+- [x] Choose a visual direction (editorial, cinematic, minimalist, etc.)
+- [x] Select primary display font
+- [x] Select body font
+- [x] Define core color palette
+- [x] Define semantic colors (success, warning, danger, info)
+- [x] Define neutral scale for text/surfaces/borders
+- [x] Define spacing scale tokens
+- [x] Define border radius scale
+- [x] Define shadow scale
+- [x] Define motion durations and easing tokens
 
 ### 1.2 Global CSS and tokens
-- [ ] Add CSS variables for colors
-- [ ] Add CSS variables for typography sizes
-- [ ] Add CSS variables for spacing
-- [ ] Add CSS variables for radius
-- [ ] Add CSS variables for shadows
-- [ ] Add utility classes for gradients/background textures
-- [ ] Add utility classes for animation primitives
+- [x] Add CSS variables for colors
+- [x] Add CSS variables for typography sizes
+- [x] Add CSS variables for spacing
+- [x] Add CSS variables for radius
+- [x] Add CSS variables for shadows
+- [x] Add utility classes for gradients/background textures
+- [x] Add utility classes for animation primitives
 
 ### 1.3 Reusable UI primitives
-- [ ] Create base Button component variants
-- [ ] Create Card component variants
-- [ ] Create Badge component variants
-- [ ] Create Tabs primitive component
-- [ ] Create Modal primitive component
-- [ ] Create EmptyState component
-- [ ] Create Skeleton loading components
-- [ ] Create Toast/feedback component
+- [x] Create base Button component variants
+- [x] Create Card component variants
+- [x] Create Badge component variants
+- [x] Create Tabs primitive component
+- [x] Create Modal primitive component
+- [x] Create EmptyState component
+- [x] Create Skeleton loading components
+- [x] Create Toast/feedback component
 
 ## Phase 2 - Core Layout and Navigation Refresh
 
 ### 2.1 App shell updates
-- [ ] Redesign top navigation layout
-- [ ] Add clearer active route styling
-- [ ] Improve mobile menu interactions
-- [ ] Add responsive container and spacing consistency
-- [ ] Add reusable page header pattern
+- [x] Redesign top navigation layout
+- [x] Add clearer active route styling
+- [x] Improve mobile menu interactions
+- [x] Add responsive container and spacing consistency
+- [x] Add reusable page header pattern
 
 ### 2.2 Home page redesign
-- [ ] Redesign hero section
-- [ ] Add dynamic "continue reading" section
-- [ ] Add "next actions" quick panel
-- [ ] Refresh feature highlight section
-- [ ] Improve footer visual style
+- [x] Redesign hero section
+- [x] Add dynamic "continue reading" section
+- [x] Add "next actions" quick panel
+- [x] Refresh feature highlight section
+- [x] Improve footer visual style
 
 ## Phase 3 - Bookshelf Experience Redesign
 

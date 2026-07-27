@@ -1,15 +1,22 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { DM_Serif_Display, JetBrains_Mono, Sora } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Nav";
+import { ToastProvider } from "./components/ui";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const sora = Sora({
+  variable: "--font-body",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const dmSerifDisplay = DM_Serif_Display({
+  variable: "--font-display",
+  weight: ["400"],
+  subsets: ["latin"],
+});
+
+const jetBrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
@@ -25,11 +32,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} >
-        <Navbar />
-        <main>
-          {children}          
-        </main>
+      <body className={`${sora.variable} ${dmSerifDisplay.variable} ${jetBrainsMono.variable} antialiased`}>
+        <ToastProvider>
+          <Navbar />
+          <main>
+            {children}
+          </main>
+        </ToastProvider>
       </body>
     </html>
   );
