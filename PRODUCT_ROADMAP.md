@@ -94,12 +94,12 @@ This checklist breaks down the redesign and feature roadmap into small, trackabl
 - [x] Improve result card readability
 
 ### 4.2 Book details page
-- [ ] Redesign book hero section
-- [ ] Improve title/subtitle/author hierarchy
-- [ ] Redesign metadata cards (pages, publisher, genre, etc.)
-- [ ] Redesign description/content section
-- [ ] Add stronger primary actions (add to shelf/wishlist)
-- [ ] Improve responsive layout on mobile
+- [x] Redesign book hero section
+- [x] Improve title/subtitle/author hierarchy
+- [x] Redesign metadata cards (pages, publisher, genre, etc.)
+- [x] Redesign description/content section
+- [x] Add stronger primary actions (add to shelf/wishlist)
+- [x] Improve responsive layout on mobile
 
 ## Phase 5 - New Feature: Series Tracking
 
