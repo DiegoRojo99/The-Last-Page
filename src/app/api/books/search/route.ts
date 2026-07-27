@@ -42,7 +42,6 @@ export async function GET(request: Request) {
           return NextResponse.json({ error: error.message }, { status: error.status });
       }
     }
-    
     console.error('Unexpected error:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'An unexpected error occurred' },
