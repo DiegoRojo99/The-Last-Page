@@ -98,6 +98,14 @@ export default function BookDetails({ bookId }: BookPageProps) {
     void loadRecommendations();
   }, [book]);
 
+  const identifiers = useMemo(() => {
+    if (!book?.volumeInfo.industryIdentifiers?.length) {
+      return [] as { type: string; identifier: string }[];
+    }
+
+    return book.volumeInfo.industryIdentifiers.filter((entry) => entry.identifier).slice(0, 4);
+  }, [book?.volumeInfo.industryIdentifiers]);
+
   const handleAddToShelf = async () => {
     if (!book?.volumeInfo || isAddingToShelf || isInShelf) return;
 
@@ -244,13 +252,6 @@ export default function BookDetails({ bookId }: BookPageProps) {
     volumeInfo.pageCount ? { label: "Length", value: `${volumeInfo.pageCount} pages`, icon: <FiLayers /> } : null,
     volumeInfo.language ? { label: "Language", value: volumeInfo.language.toUpperCase(), icon: <FiGlobe /> } : null,
   ].filter((chip) => Boolean(chip)) as { label: string; value: string; icon: JSX.Element }[];
-
-  const identifiers = useMemo(() => {
-    if (!volumeInfo.industryIdentifiers?.length) {
-      return [] as { type: string; identifier: string }[];
-    }
-    return volumeInfo.industryIdentifiers.filter((entry) => entry.identifier).slice(0, 4);
-  }, [volumeInfo.industryIdentifiers]);
 
   return (
     <div className="app-section">

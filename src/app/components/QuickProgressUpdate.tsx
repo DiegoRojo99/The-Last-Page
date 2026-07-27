@@ -16,6 +16,7 @@ export default function QuickProgressUpdate({ book, onUpdate }: QuickProgressUpd
   const [isEditing, setIsEditing] = useState(false);
   const [currentPage, setCurrentPage] = useState(book.currentPage?.toString() || '0');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showCompletionBackfill, setShowCompletionBackfill] = useState(false);
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
 
   const toDateInputValue = (value: unknown) => {
@@ -163,7 +164,7 @@ export default function QuickProgressUpdate({ book, onUpdate }: QuickProgressUpd
           </button>
           {book.status !== 'completed' ? (
             <button
-              onClick={() => setIsMarkingComplete((prev) => !prev)}
+              onClick={() => setShowCompletionBackfill((prev) => !prev)}
               className="text-green-600 transition-colors hover:text-green-700"
               title="Mark completed with dates"
             >
@@ -223,7 +224,7 @@ export default function QuickProgressUpdate({ book, onUpdate }: QuickProgressUpd
         </div>
       )}
 
-      {isMarkingComplete ? (
+      {showCompletionBackfill ? (
         <div className="mt-3 space-y-3 rounded-lg border border-green-100 bg-green-50 p-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-green-700">Mark as completed</p>
 
@@ -259,7 +260,7 @@ export default function QuickProgressUpdate({ book, onUpdate }: QuickProgressUpd
               {isMarkingComplete ? 'Updating...' : 'Mark Completed'}
             </button>
             <button
-              onClick={() => setIsMarkingComplete(false)}
+              onClick={() => setShowCompletionBackfill(false)}
               className="inline-flex items-center justify-center gap-1 rounded border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
             >
               <FiX className="text-xs" />
