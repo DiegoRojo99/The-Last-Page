@@ -63,11 +63,11 @@ This checklist breaks down the redesign and feature roadmap into small, trackabl
 ## Phase 3 - Bookshelf Experience Redesign
 
 ### 3.1 Bookshelf overview
-- [ ] Redesign bookshelf header area
-- [ ] Redesign status summary cards
-- [ ] Replace/refresh tab styles
-- [ ] Add better empty states per tab
-- [ ] Improve loading states with skeletons
+- [x] Redesign bookshelf header area
+- [x] Redesign status summary cards
+- [x] Replace/refresh tab styles
+- [x] Add better empty states per tab
+- [x] Improve loading states with skeletons
 
 ### 3.2 Book cards and interactions
 - [ ] Redesign BookCard layout

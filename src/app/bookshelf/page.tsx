@@ -8,7 +8,45 @@ import { bookStatus, userBook, wishlistBook } from "../utils/types/booksDB";
 import { BookCard } from "./BookCard";
 import { WishlistCard } from "./WishlistCard";
 import { useCurrentUser } from "@/lib/currentUser";
-import { Button, EmptyState, PageHeader } from "../components/ui";
+import { Button, EmptyState, PageHeader, Skeleton } from "../components/ui";
+import { FiBookOpen, FiCheckCircle, FiClock, FiHeart, FiPauseCircle } from "react-icons/fi";
+
+function BookshelfPageSkeleton() {
+  return (
+    <div className="app-section">
+      <div className="app-container page-stack">
+        <div className="surface-elevated px-5 py-6 md:px-7 md:py-7">
+          <Skeleton className="h-10 w-56" />
+          <Skeleton className="mt-3 h-5 w-96 max-w-full" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={`stat-skeleton-${i}`} className="surface-paper p-4">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="mt-3 h-8 w-14" />
+            </div>
+          ))}
+        </div>
+
+        <Skeleton className="h-12 w-full rounded-[var(--radius-lg)]" />
+
+        <div className="surface-elevated p-6">
+          <Skeleton className="h-7 w-52" />
+          <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={`card-skeleton-${i}`} className="space-y-2">
+                <Skeleton className="h-44 w-full rounded-[var(--radius-md)]" />
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function BookshelfPage() {
   const { user, loading } = useCurrentUser();
@@ -74,12 +112,61 @@ export default function BookshelfPage() {
     wishlist: wishlist.length,
   };
 
+  const totalBooksInLibrary = books.length;
+  const activeReadRatio = totalBooksInLibrary > 0
+    ? Math.round((bookCounts.reading / totalBooksInLibrary) * 100)
+    : 0;
+
+  const statusCards = [
+    {
+      key: 'reading',
+      label: 'Currently Reading',
+      value: bookCounts.reading,
+      helper: `${activeReadRatio}% active`,
+      icon: FiBookOpen,
+      tone: 'text-[var(--color-info)]',
+      bg: 'bg-[#eef4ff]'
+    },
+    {
+      key: 'completed',
+      label: 'Completed',
+      value: bookCounts.completed,
+      helper: 'Finished books',
+      icon: FiCheckCircle,
+      tone: 'text-[var(--color-success)]',
+      bg: 'bg-[#ebf8f0]'
+    },
+    {
+      key: 'notStarted',
+      label: 'Want to Read',
+      value: bookCounts.notStarted,
+      helper: 'Ready queue',
+      icon: FiClock,
+      tone: 'text-[var(--neutral-700)]',
+      bg: 'bg-[var(--neutral-100)]'
+    },
+    {
+      key: 'abandoned',
+      label: 'Abandoned',
+      value: bookCounts.abandoned,
+      helper: 'Paused long-term',
+      icon: FiPauseCircle,
+      tone: 'text-[var(--color-danger)]',
+      bg: 'bg-[#fff0ec]'
+    },
+    {
+      key: 'wishlist',
+      label: 'Wishlist',
+      value: bookCounts.wishlist,
+      helper: 'Next candidates',
+      icon: FiHeart,
+      tone: 'text-[var(--color-warning)]',
+      bg: 'bg-[#fff6e8]'
+    },
+  ];
+
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-[var(--color-ink)]" />
-      </div>
-    );
+    return <BookshelfPageSkeleton />;
   }
 
   if (!user) {
@@ -102,29 +189,24 @@ export default function BookshelfPage() {
           title="My Bookshelf"
           description="Manage your library, stay in motion, and keep every reading session in one place."
           action={<AddBookButton handleClick={() => setIsModalOpen(true)} />}
+          className="bg-mesh-warm"
         />
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-          <div className="surface-paper p-4 text-center">
-            <div className="text-2xl font-bold text-[var(--color-info)]">{bookCounts.reading}</div>
-            <div className="text-sm text-[var(--neutral-600)]">Currently Reading</div>
-          </div>
-          <div className="surface-paper p-4 text-center">
-            <div className="text-2xl font-bold text-[var(--color-success)]">{bookCounts.completed}</div>
-            <div className="text-sm text-[var(--neutral-600)]">Completed</div>
-          </div>
-          <div className="surface-paper p-4 text-center">
-            <div className="text-2xl font-bold text-[var(--neutral-800)]">{bookCounts.notStarted}</div>
-            <div className="text-sm text-[var(--neutral-600)]">Want to Read</div>
-          </div>
-          <div className="surface-paper p-4 text-center">
-            <div className="text-2xl font-bold text-[var(--color-danger)]">{bookCounts.abandoned}</div>
-            <div className="text-sm text-[var(--neutral-600)]">Abandoned</div>
-          </div>
-          <div className="surface-paper p-4 text-center">
-            <div className="text-2xl font-bold text-[var(--color-warning)]">{bookCounts.wishlist}</div>
-            <div className="text-sm text-[var(--neutral-600)]">Wishlist</div>
-          </div>
+          {statusCards.map((card) => (
+            <div key={card.key} className="surface-paper p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--neutral-500)]">{card.label}</p>
+                  <p className="mt-2 text-3xl font-bold text-[var(--neutral-900)]">{card.value}</p>
+                  <p className="mt-1 text-xs text-[var(--neutral-600)]">{card.helper}</p>
+                </div>
+                <span className={`inline-flex h-10 w-10 items-center justify-center rounded-full ${card.bg} ${card.tone}`}>
+                  <card.icon className="text-lg" />
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
 
         <BookshelfTabs selectedTab={selectedTab} onTabChange={handleTabChange} counts={bookCounts} />
@@ -143,8 +225,14 @@ export default function BookshelfPage() {
             </h2>
 
             {fetchLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[var(--color-ink)]" />
+              <div className="grid grid-cols-2 gap-4 py-2 md:grid-cols-4 lg:grid-cols-6">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={`book-grid-skeleton-${i}`} className="space-y-2">
+                    <Skeleton className="h-44 w-full rounded-[var(--radius-md)]" />
+                    <Skeleton className="h-4 w-5/6" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ))}
               </div>
             ) : displayItems.length > 0 ? (
               <div className="flex flex-wrap gap-4 justify-start">
