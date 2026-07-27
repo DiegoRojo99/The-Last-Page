@@ -105,39 +105,39 @@ export async function PUT(req: NextRequest) {
       totalPages?: number;
       status?: string;
       notes?: string;
-      startedAt?: FirebaseFirestore.Timestamp;
-      completedAt?: FirebaseFirestore.Timestamp;
+      startedAt?: FirebaseFirestore.Timestamp | null;
+      completedAt?: FirebaseFirestore.Timestamp | null;
     } = {};
+
+    const parseDateInput = (value: unknown) => {
+      if (value === null) return null;
+      if (value === undefined) return undefined;
+
+      const parsed = new Date(String(value));
+      if (Number.isNaN(parsed.getTime())) throw new Error('Invalid date value');
+      return Timestamp.fromDate(parsed);
+    };
     
-    if (body.currentPage !== undefined) {
-      updateData.currentPage = body.currentPage;
-    }
-    
-    if (body.totalPages !== undefined) {
-      updateData.totalPages = body.totalPages;
-    }
-    
+    if (body.currentPage !== undefined) updateData.currentPage = body.currentPage;    
+    if (body.totalPages !== undefined) updateData.totalPages = body.totalPages;    
     if (body.status !== undefined) {
       updateData.status = body.status;
       
       // Set timestamps based on status changes
-      if (body.status === 'reading' && !currentData.startedAt) {
-        updateData.startedAt = Timestamp.now();
-      } 
-      else if (body.status === 'completed' && !currentData.completedAt) {
-        updateData.completedAt = Timestamp.now();
-      }
+      if (body.status === 'reading' && !currentData.startedAt) updateData.startedAt = Timestamp.now();
+      else if (body.status === 'completed' && !currentData.completedAt) updateData.completedAt = Timestamp.now();
     }
-    
-    if (body.notes !== undefined) {
-      updateData.notes = body.notes;
-    }
+
+    const startedAt = parseDateInput(body.startedAt);
+    if (startedAt !== undefined) updateData.startedAt = startedAt;
+
+    const completedAt = parseDateInput(body.completedAt);
+    if (completedAt !== undefined) updateData.completedAt = completedAt;
+  
+    if (body.notes !== undefined) updateData.notes = body.notes;
 
     // Check if there's at least one field to update
-    if (Object.keys(updateData).length === 0) {
-      return NextResponse.json({ error: "No fields to update" }, { status: 400 });
-    }
-
+    if (Object.keys(updateData).length === 0) return NextResponse.json({ error: "No fields to update" }, { status: 400 });
     await bookRef.update(updateData);
 
     return NextResponse.json({ 

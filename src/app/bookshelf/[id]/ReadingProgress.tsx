@@ -50,6 +50,11 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
     sessionDate: '',
     notes: '',
   });
+  const [showCompletionBackfill, setShowCompletionBackfill] = useState(false);
+  const [completionBackfill, setCompletionBackfill] = useState({
+    startedAt: '',
+    completedAt: '',
+  });
   const [sessionData, setSessionData] = useState({
     durationMinutes: '',
     pagesRead: '',
@@ -186,6 +191,69 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
       sessionDate: '',
       notes: '',
     });
+  };
+
+  const handleMarkBookCompleted = async () => {
+    if (!user || !book) return;
+
+    if (!completionBackfill.completedAt) {
+      pushToast({
+        title: 'Completed date required',
+        description: 'Please choose a completed date before saving.',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    if (completionBackfill.startedAt && new Date(completionBackfill.completedAt).getTime() < new Date(completionBackfill.startedAt).getTime()) {
+      pushToast({
+        title: 'Invalid date range',
+        description: 'Completed date cannot be earlier than the start date.',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch(`/api/user/books/${bookId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'completed',
+          currentPage: book.userInfo.totalPages || book.userInfo.currentPage || 0,
+          startedAt: completionBackfill.startedAt || null,
+          completedAt: completionBackfill.completedAt,
+        }),
+      });
+
+      if (response.ok) {
+        pushToast({
+          title: 'Book marked completed',
+          description: 'The book was updated with your dates.',
+          variant: 'success',
+        });
+        setShowCompletionBackfill(false);
+        fetchBookData(user);
+      } else {
+        const body = await response.json().catch(() => null) as { error?: string } | null;
+        pushToast({
+          title: 'Could not update book',
+          description: body?.error || 'Please try again.',
+          variant: 'error',
+        });
+      }
+    } catch (error) {
+      console.error('Error marking book completed:', error);
+      pushToast({
+        title: 'Could not update book',
+        description: 'Unexpected error while updating the book.',
+        variant: 'error',
+      });
+    }
   };
 
   const saveSessionEdit = async (sessionId: string) => {
@@ -480,6 +548,61 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="mt-5 rounded-lg border border-green-100 bg-green-50/60 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-green-800">Backfill this book</p>
+              <p className="text-xs text-green-700">Mark it as completed and optionally add the real dates.</p>
+            </div>
+
+            <button
+              onClick={() => setShowCompletionBackfill((prev) => !prev)}
+              className="inline-flex items-center justify-center rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+            >
+              {showCompletionBackfill ? 'Close' : 'Mark Completed'}
+            </button>
+          </div>
+
+          {showCompletionBackfill ? (
+            <div className="mt-4 grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+              <label className="text-sm text-gray-700">
+                Started at
+                <input
+                  type="date"
+                  value={completionBackfill.startedAt}
+                  onChange={(e) => setCompletionBackfill((prev) => ({ ...prev, startedAt: e.target.value }))}
+                  className="mt-1 h-10 w-full rounded border border-gray-300 px-3 text-sm"
+                />
+              </label>
+
+              <label className="text-sm text-gray-700">
+                Completed at
+                <input
+                  type="date"
+                  value={completionBackfill.completedAt}
+                  onChange={(e) => setCompletionBackfill((prev) => ({ ...prev, completedAt: e.target.value }))}
+                  className="mt-1 h-10 w-full rounded border border-gray-300 px-3 text-sm"
+                />
+              </label>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => void handleMarkBookCompleted()}
+                  className="inline-flex h-10 items-center justify-center rounded bg-gray-800 px-4 text-sm font-medium text-white hover:bg-gray-700"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setShowCompletionBackfill(false)}
+                  className="inline-flex h-10 items-center justify-center rounded border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
         
         {/* Progress Bar */}

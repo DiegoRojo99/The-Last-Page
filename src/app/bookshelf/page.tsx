@@ -77,6 +77,8 @@ export default function BookshelfPage() {
   const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [selectedBookIds, setSelectedBookIds] = useState<string[]>([]);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [bulkStartedAt, setBulkStartedAt] = useState('');
+  const [bulkCompletedAt, setBulkCompletedAt] = useState('');
 
   useEffect(() => {
     try {
@@ -271,6 +273,95 @@ export default function BookshelfPage() {
       pushToast({
         title: 'Bulk update failed',
         description: 'Could not apply the selected action.',
+        variant: 'error',
+      });
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  }
+
+  async function markSelectedCompletedWithDates() {
+    if (!user || selectedBookIds.length === 0 || selectedTab === 'wishlist') return;
+
+    if (!bulkCompletedAt) {
+      pushToast({
+        title: 'Completion date required',
+        description: 'Set at least a completed date before applying this action.',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    const startedAtDate = bulkStartedAt ? new Date(bulkStartedAt) : null;
+    const completedAtDate = new Date(bulkCompletedAt);
+
+    if (startedAtDate && completedAtDate.getTime() < startedAtDate.getTime()) {
+      pushToast({
+        title: 'Invalid date range',
+        description: 'Completed date cannot be earlier than start date.',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    setIsBulkUpdating(true);
+    try {
+      const token = await user.getIdToken();
+      const results = await Promise.all(
+        selectedBookIds.map(async (bookId) => {
+          const response = await fetch(`/api/user/books/${bookId}`, {
+            method: 'PUT',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              status: 'completed',
+              startedAt: startedAtDate ? startedAtDate.toISOString() : null,
+              completedAt: completedAtDate.toISOString(),
+            }),
+          });
+          return { ok: response.ok };
+        })
+      );
+
+      const failedCount = results.filter((result) => !result.ok).length;
+      const successCount = results.length - failedCount;
+
+      if (successCount > 0) {
+        setBooks((prev) => prev.map((book) => (
+          selectedBookIds.includes(book.id)
+            ? {
+                ...book,
+                status: 'completed',
+                startedAt: startedAtDate ? (startedAtDate as unknown as userBook['startedAt']) : undefined,
+                completedAt: (completedAtDate as unknown as userBook['completedAt']),
+              }
+            : book
+        )));
+      }
+
+      setSelectedBookIds([]);
+      if (failedCount > 0) {
+        pushToast({
+          title: 'Bulk completion partially applied',
+          description: `${successCount} books updated, ${failedCount} failed.`,
+          variant: 'warning',
+        });
+      } else {
+        pushToast({
+          title: 'Books marked as completed',
+          description: `${successCount} selected books were updated with your dates.`,
+          variant: 'success',
+        });
+      }
+
+      setRefresh((prev) => !prev);
+    } catch (error) {
+      console.error('Error applying completion backfill:', error);
+      pushToast({
+        title: 'Could not apply completion backfill',
+        description: 'Please try again.',
         variant: 'error',
       });
     } finally {
@@ -550,6 +641,44 @@ export default function BookshelfPage() {
                     {tag}
                   </Button>
                 ))}
+              </div>
+            ) : null}
+
+            {multiSelectMode ? (
+              <div className="mt-3 rounded-[var(--radius-md)] border border-[var(--neutral-200)] bg-[var(--neutral-50)] p-3">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--neutral-500)]">
+                  Backfill Completion Dates
+                </p>
+                <div className="flex flex-wrap items-end gap-2">
+                  <label className="text-xs text-[var(--neutral-600)]">
+                    Started at
+                    <input
+                      type="date"
+                      value={bulkStartedAt}
+                      onChange={(event) => setBulkStartedAt(event.target.value)}
+                      className="mt-1 block h-9 rounded-[var(--radius-md)] border border-[var(--neutral-300)] bg-white px-3 text-sm text-[var(--neutral-700)]"
+                    />
+                  </label>
+
+                  <label className="text-xs text-[var(--neutral-600)]">
+                    Completed at
+                    <input
+                      type="date"
+                      value={bulkCompletedAt}
+                      onChange={(event) => setBulkCompletedAt(event.target.value)}
+                      className="mt-1 block h-9 rounded-[var(--radius-md)] border border-[var(--neutral-300)] bg-white px-3 text-sm text-[var(--neutral-700)]"
+                    />
+                  </label>
+
+                  <Button
+                    size="sm"
+                    onClick={() => void markSelectedCompletedWithDates()}
+                    disabled={isBulkUpdating || visibleSelectedCount === 0}
+                    className="h-9"
+                  >
+                    Mark Selected Completed
+                  </Button>
+                </div>
               </div>
             ) : null}
           </div>
