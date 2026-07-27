@@ -1,6 +1,6 @@
 'use client';
-import React, { useState } from 'react';
-import { FiGrid, FiList, FiSearch } from 'react-icons/fi';
+import React, { useMemo, useState } from 'react';
+import { FiGrid, FiList, FiSearch, FiSliders } from 'react-icons/fi';
 import { Book } from '../utils/types/booksAPI';
 import BookSearchBar from './BookSearchBar';
 import BookSearchResult from './BookSearchResult';
@@ -18,6 +18,58 @@ const BookSearch: React.FC<BookSearchProps> = ({ bookSelection, isModal = false 
   const [error, setError] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [languageFilter, setLanguageFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [sortBy, setSortBy] = useState<'relevance' | 'title-asc' | 'title-desc' | 'year-desc' | 'year-asc'>('relevance');
+
+  const languages = useMemo(() => {
+    const values = new Set<string>();
+    books.forEach((book) => {
+      const language = book.volumeInfo?.language?.trim().toLowerCase();
+      if (language) values.add(language);
+    });
+    return Array.from(values).sort((a, b) => a.localeCompare(b));
+  }, [books]);
+
+  const categories = useMemo(() => {
+    const values = new Set<string>();
+    books.forEach((book) => {
+      (book.volumeInfo?.categories || []).forEach((category) => {
+        const cleanCategory = category.trim();
+        if (cleanCategory) values.add(cleanCategory);
+      });
+    });
+    return Array.from(values).sort((a, b) => a.localeCompare(b));
+  }, [books]);
+
+  const filteredBooks = useMemo(() => {
+    const byFilter = books.filter((book) => {
+      const language = book.volumeInfo?.language?.trim().toLowerCase();
+      const matchesLanguage = languageFilter === 'all' || language === languageFilter;
+
+      const categoryList = book.volumeInfo?.categories || [];
+      const matchesCategory = categoryFilter === 'all' || categoryList.includes(categoryFilter);
+
+      return matchesLanguage && matchesCategory;
+    });
+
+    if (sortBy === 'relevance') return byFilter;
+
+    const sorted = [...byFilter];
+    if (sortBy === 'title-asc') {
+      sorted.sort((a, b) => (a.volumeInfo?.title || '').localeCompare(b.volumeInfo?.title || ''));
+    } else if (sortBy === 'title-desc') {
+      sorted.sort((a, b) => (b.volumeInfo?.title || '').localeCompare(a.volumeInfo?.title || ''));
+    } else if (sortBy === 'year-desc' || sortBy === 'year-asc') {
+      sorted.sort((a, b) => {
+        const yearA = Number((a.volumeInfo?.publishedDate || '').slice(0, 4)) || 0;
+        const yearB = Number((b.volumeInfo?.publishedDate || '').slice(0, 4)) || 0;
+        return sortBy === 'year-desc' ? yearB - yearA : yearA - yearB;
+      });
+    }
+
+    return sorted;
+  }, [books, categoryFilter, languageFilter, sortBy]);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -49,9 +101,12 @@ const BookSearch: React.FC<BookSearchProps> = ({ bookSelection, isModal = false 
     setBooks([]);
     setError('');
     setHasSearched(false);
+    setLanguageFilter('all');
+    setCategoryFilter('all');
+    setSortBy('relevance');
   };
 
-  const showToggle = !isModal && books.length > 0 && !loading;
+  const showToggle = !isModal && filteredBooks.length > 0 && !loading;
 
   return (
     <div className={isModal ? 'w-full' : 'page-stack'}>
@@ -65,7 +120,7 @@ const BookSearch: React.FC<BookSearchProps> = ({ bookSelection, isModal = false 
 
       {showToggle ? (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-[var(--neutral-600)]">Search Results ({books.length})</p>
+          <p className="text-sm text-[var(--neutral-600)]">Search Results ({filteredBooks.length} / {books.length})</p>
           <div className="inline-flex gap-2 rounded-[var(--radius-pill)] border border-[var(--neutral-200)] bg-white p-1">
             <Button
               size="sm"
@@ -86,6 +141,49 @@ const BookSearch: React.FC<BookSearchProps> = ({ bookSelection, isModal = false 
               List
             </Button>
           </div>
+        </div>
+      ) : null}
+
+      {!isModal && books.length > 0 && !loading ? (
+        <div className="surface-paper flex flex-wrap items-center gap-2 p-3">
+          <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-[var(--neutral-500)]">
+            <FiSliders />
+            Search Controls
+          </span>
+
+          <select
+            value={languageFilter}
+            onChange={(event) => setLanguageFilter(event.target.value)}
+            className="h-9 rounded-[var(--radius-md)] border border-[var(--neutral-300)] bg-white px-3 text-sm text-[var(--neutral-700)]"
+          >
+            <option value="all">All languages</option>
+            {languages.map((language) => (
+              <option key={language} value={language}>{language.toUpperCase()}</option>
+            ))}
+          </select>
+
+          <select
+            value={categoryFilter}
+            onChange={(event) => setCategoryFilter(event.target.value)}
+            className="h-9 rounded-[var(--radius-md)] border border-[var(--neutral-300)] bg-white px-3 text-sm text-[var(--neutral-700)]"
+          >
+            <option value="all">All categories</option>
+            {categories.map((category) => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+
+          <select
+            value={sortBy}
+            onChange={(event) => setSortBy(event.target.value as 'relevance' | 'title-asc' | 'title-desc' | 'year-desc' | 'year-asc')}
+            className="h-9 rounded-[var(--radius-md)] border border-[var(--neutral-300)] bg-white px-3 text-sm text-[var(--neutral-700)]"
+          >
+            <option value="relevance">Sort: Relevance</option>
+            <option value="title-asc">Sort: Title A-Z</option>
+            <option value="title-desc">Sort: Title Z-A</option>
+            <option value="year-desc">Sort: Newest</option>
+            <option value="year-asc">Sort: Oldest</option>
+          </select>
         </div>
       ) : null}
       
@@ -121,10 +219,19 @@ const BookSearch: React.FC<BookSearchProps> = ({ bookSelection, isModal = false 
           action={<Button variant="secondary" onClick={handleClear}>Clear Search</Button>}
         />
       )}
+
+      {!loading && !error && hasSearched && books.length > 0 && filteredBooks.length === 0 && (
+        <EmptyState
+          title="No matches for the selected filters"
+          description="Try a different language/category filter or switch sort mode."
+          icon={<FiSliders className="text-3xl" />}
+          action={<Button variant="secondary" onClick={() => { setLanguageFilter('all'); setCategoryFilter('all'); }}>Reset Filters</Button>}
+        />
+      )}
       
-      {!loading && books.length > 0 && (
+      {!loading && filteredBooks.length > 0 && (
         <div className={isModal ? 'mt-6' : 'mt-8'}>
-          <BookSearchResult books={books} bookSelection={bookSelection} isModal={isModal} viewMode={viewMode} />
+          <BookSearchResult books={filteredBooks} bookSelection={bookSelection} isModal={isModal} viewMode={viewMode} />
         </div>
       )}
     </div>

@@ -10,11 +10,11 @@ This roadmap includes planned work only. Completed items were removed to keep fo
 
 ## Phase 1 - Workflow upgrades
 
-- [ ] Add bulk actions for books (multi-select, status updates, archive)
-- [ ] Add custom shelves or tags
-- [ ] Add saved sort and filter presets
-- [ ] Add search quality controls (language, category, sort)
-- [ ] Add similar books and recommendation blocks
+- [x] Add bulk actions for books (multi-select, status updates, archive)
+- [x] Add custom shelves or tags
+- [x] Add saved sort and filter presets
+- [x] Add search quality controls (language, category, sort)
+- [x] Add similar books and recommendation blocks
 
 ## Phase 2 - Reading depth
 

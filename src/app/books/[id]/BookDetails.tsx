@@ -4,8 +4,8 @@ import { auth } from "@/lib/firebase";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { FiAlertCircle, FiBookOpen, FiCheck, FiClock, FiGlobe, FiHash, FiLayers, FiPlus, FiRefreshCw } from "react-icons/fi";
+import { JSX, useCallback, useEffect, useMemo, useState } from "react";
+import { FiAlertCircle, FiArrowRight, FiBookOpen, FiCheck, FiClock, FiGlobe, FiHash, FiLayers, FiPlus, FiRefreshCw } from "react-icons/fi";
 import WishlistAction from "@/app/components/WishlistAction";
 import { Badge, Button, Card, CardContent, EmptyState, Skeleton, SkeletonText, useToast } from "@/app/components/ui";
 import { Book } from "@/app/utils/types/booksAPI";
@@ -21,6 +21,8 @@ export default function BookDetails({ bookId }: BookPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [isAddingToShelf, setIsAddingToShelf] = useState(false);
   const [isInShelf, setIsInShelf] = useState(false);
+  const [recommendations, setRecommendations] = useState<Book[]>([]);
+  const [recommendationsLoading, setRecommendationsLoading] = useState(false);
   const { pushToast } = useToast();
 
   const fetchBook = useCallback(async () => {
@@ -54,6 +56,47 @@ export default function BookDetails({ bookId }: BookPageProps) {
       void fetchBook();
     }
   }, [bookId, fetchBook]);
+
+  useEffect(() => {
+    const loadRecommendations = async () => {
+      if (!book?.volumeInfo) {
+        setRecommendations([]);
+        return;
+      }
+
+      const firstCategory = book.volumeInfo.categories?.[0];
+      const firstAuthor = book.volumeInfo.authors?.[0];
+      const fallbackTerm = book.volumeInfo.title?.split(' ').slice(0, 2).join(' ');
+      const searchTerm = firstCategory || firstAuthor || fallbackTerm;
+
+      if (!searchTerm) {
+        setRecommendations([]);
+        return;
+      }
+
+      try {
+        setRecommendationsLoading(true);
+        const response = await fetch(`/api/books/search?q=${encodeURIComponent(searchTerm)}`);
+        if (!response.ok) {
+          setRecommendations([]);
+          return;
+        }
+
+        const data = await response.json() as Book[];
+        const nextRecommendations = data
+          .filter((item) => item.id !== book.id && item.volumeInfo?.title)
+          .slice(0, 6);
+        setRecommendations(nextRecommendations);
+      } catch (requestError) {
+        console.error('Error loading recommendations:', requestError);
+        setRecommendations([]);
+      } finally {
+        setRecommendationsLoading(false);
+      }
+    };
+
+    void loadRecommendations();
+  }, [book]);
 
   const handleAddToShelf = async () => {
     if (!book?.volumeInfo || isAddingToShelf || isInShelf) return;
@@ -370,6 +413,68 @@ export default function BookDetails({ bookId }: BookPageProps) {
             ) : null}
           </div>
         </div>
+
+        <Card>
+          <CardContent className="space-y-4 py-6">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-2xl text-[var(--neutral-900)]">Similar Books</h3>
+              <Link href="/books" className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--color-accent)] hover:underline">
+                Browse more
+                <FiArrowRight />
+              </Link>
+            </div>
+
+            {recommendationsLoading ? (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div key={`rec-skeleton-${index}`} className="surface-paper p-3">
+                    <Skeleton className="h-40 w-full rounded-[var(--radius-md)]" />
+                    <Skeleton className="mt-2 h-4 w-5/6" />
+                    <Skeleton className="mt-1 h-4 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : recommendations.length > 0 ? (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {recommendations.map((recommendation) => {
+                  const recommendationCover = normalizeGoogleBooksImageUrl(recommendation.volumeInfo?.imageLinks?.thumbnail);
+                  return (
+                    <Link
+                      key={recommendation.id}
+                      href={`/books/${recommendation.id}`}
+                      className="surface-paper group overflow-hidden p-3 transition-all duration-[var(--motion-fast)] hover:-translate-y-0.5"
+                    >
+                      <div className="relative overflow-hidden rounded-[var(--radius-md)] bg-[var(--neutral-100)]">
+                        {recommendationCover ? (
+                          <Image
+                            src={recommendationCover}
+                            alt={recommendation.volumeInfo.title}
+                            width={180}
+                            height={230}
+                            className="h-44 w-full object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="flex h-44 items-center justify-center text-[var(--neutral-500)]">
+                            <FiBookOpen className="text-3xl" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="mt-2 line-clamp-2 text-sm font-semibold text-[var(--neutral-900)]">
+                        {recommendation.volumeInfo.title}
+                      </p>
+                      <p className="line-clamp-1 text-xs text-[var(--neutral-600)]">
+                        {recommendation.volumeInfo.authors?.join(', ') || 'Unknown author'}
+                      </p>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-[var(--neutral-600)]">No recommendations available right now.</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
