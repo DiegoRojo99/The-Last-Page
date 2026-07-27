@@ -78,20 +78,20 @@ This checklist breaks down the redesign and feature roadmap into small, trackabl
 - [x] Add hover/focus motion polish
 
 ### 3.3 Add book flow
-- [ ] Redesign Add Book modal layout
-- [ ] Improve modal close/escape behavior UX copy
-- [ ] Add loading and success feedback states
-- [ ] Improve error handling visuals for add flow
+- [x] Redesign Add Book modal layout
+- [x] Improve modal close/escape behavior UX copy
+- [x] Add loading and success feedback states
+- [x] Improve error handling visuals for add flow
 
 ## Phase 4 - Search and Book Details Refresh
 
 ### 4.1 Search page and results
-- [ ] Redesign search page header
-- [ ] Redesign search bar visual treatment
-- [ ] Add clear loading skeletons for search
-- [ ] Improve no-results state
-- [ ] Add optional results view toggle (grid/list)
-- [ ] Improve result card readability
+- [x] Redesign search page header
+- [x] Redesign search bar visual treatment
+- [x] Add clear loading skeletons for search
+- [x] Improve no-results state
+- [x] Add optional results view toggle (grid/list)
+- [x] Improve result card readability
 
 ### 4.2 Book details page
 - [ ] Redesign book hero section

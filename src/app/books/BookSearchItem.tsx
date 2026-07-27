@@ -2,18 +2,20 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Book } from "../utils/types/booksAPI";
-import { FiPlus, FiCheck, FiBookOpen } from 'react-icons/fi';
+import { FiPlus, FiCheck, FiBookOpen, FiArrowRight } from 'react-icons/fi';
 import Link from "next/link";
 import { auth } from "@/lib/firebase";
 import WishlistAction from "../components/WishlistAction";
+import { Badge, Button } from "../components/ui";
 
 interface BookSearchItemProps {
   book: Book;
-  onSelect?: () => void;
+  onSelect?: () => void | Promise<void>;
   isModal?: boolean;
+  viewMode?: 'grid' | 'list';
 }
 
-export default function BookSearchItem({ book, onSelect, isModal = false }: BookSearchItemProps) {
+export default function BookSearchItem({ book, onSelect, isModal = false, viewMode = 'grid' }: BookSearchItemProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
 
@@ -33,6 +35,13 @@ export default function BookSearchItem({ book, onSelect, isModal = false }: Book
   
   const bookTitle = bookInfo.title;
   if (!bookTitle) return null;
+
+  const publicationYear = bookInfo.publishedDate ? new Date(bookInfo.publishedDate).getFullYear() : null;
+  const rootClass = isModal
+    ? "surface-paper overflow-hidden"
+    : viewMode === 'list'
+      ? "surface-paper overflow-hidden p-4"
+      : "surface-paper overflow-hidden p-3";
 
   const handleAddToBookshelf = async () => {
     if (isAdding || isAdded) return;
@@ -77,115 +86,111 @@ export default function BookSearchItem({ book, onSelect, isModal = false }: Book
     }
   };
 
+  const handlePrimaryAction = async () => {
+    if (isAdding || isAdded) return;
+
+    if (onSelect) {
+      setIsAdding(true);
+      try {
+        await onSelect();
+        setIsAdded(true);
+      } catch (error) {
+        console.error('Error selecting book:', error);
+      } finally {
+        setIsAdding(false);
+      }
+      return;
+    }
+
+    await handleAddToBookshelf();
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-200 overflow-hidden h-full flex flex-col">
-      {/* Book Cover */}
-      <div className={`relative bg-gray-100 flex-shrink-0 ${isModal ? 'h-48' : 'h-80'}`}>
-        {bookInfo.imageLinks?.thumbnail ? (
-          <Image
-            src={bookInfo.imageLinks.thumbnail}
-            alt={bookTitle}
-            fill
-            className="object-cover"
-            loading="lazy"
-            unoptimized
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-500">
-            <FiBookOpen className={`${isModal ? 'text-2xl' : 'text-4xl'}`} />
-          </div>
-        )}
-      </div>
-
-      {/* Book Info */}
-      <div className={`${isModal ? 'p-2' : 'p-3'} flex-1 flex flex-col`}>
-        <h3 className={`font-semibold text-gray-900 mb-1 line-clamp-2 leading-tight ${
-          isModal ? 'text-xs' : 'text-sm'
+    <article className={rootClass}>
+      <div className={isModal || viewMode === 'grid' ? 'flex h-full flex-col' : 'flex gap-4'}>
+        <div className={`relative shrink-0 overflow-hidden rounded-[var(--radius-md)] bg-[var(--neutral-100)] ${
+          isModal ? 'h-48' : viewMode === 'list' ? 'h-48 w-32' : 'h-72 w-full'
         }`}>
-          {bookInfo.title}
-        </h3>
-        
-        {bookInfo.authors && bookInfo.authors.length > 0 && (
-          <p className={`text-gray-600 mb-2 ${isModal ? 'text-xs' : 'text-xs'}`}>
-            by {bookInfo.authors.join(", ")}
-          </p>
-        )}
-        
-        {!isModal && (
-          <p className="text-gray-500 text-xs mb-3 line-clamp-4 flex-1">
-            {bookDescription}
-          </p>
-        )}
-
-        {/* Book Details */}
-        <div className={`flex flex-wrap gap-1 mb-3 text-xs text-gray-500 ${isModal ? 'mb-2' : 'mb-3'}`}>
-          {bookInfo.publishedDate && (
-            <span className="bg-gray-100 px-2 py-0.5 rounded text-xs">
-              {new Date(bookInfo.publishedDate).getFullYear()}
-            </span>
-          )}
-          {bookInfo.pageCount && (
-            <span className="bg-gray-100 px-2 py-0.5 rounded text-xs">
-              {bookInfo.pageCount}p
-            </span>
-          )}
-          {bookInfo.categories && bookInfo.categories.length > 0 && (
-            <span className="bg-gray-100 px-2 py-0.5 rounded text-xs">
-              {bookInfo.categories[0]}
-            </span>
+          {bookInfo.imageLinks?.thumbnail ? (
+            <Image
+              src={bookInfo.imageLinks.thumbnail}
+              alt={bookTitle}
+              fill
+              className="object-cover"
+              loading="lazy"
+              unoptimized
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-[var(--neutral-500)]">
+              <FiBookOpen className={`${isModal ? 'text-2xl' : 'text-4xl'}`} />
+            </div>
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className={`flex gap-2 mt-auto ${isModal ? 'flex-col' : ''}`}>
-          <button
-            onClick={onSelect ?? handleAddToBookshelf}
-            disabled={isAdding || isAdded}
-            className={`flex-2 px-3 py-2 rounded-lg font-medium text-xs transition-colors ${
-              isAdded
-                ? 'bg-green-100 text-green-800 cursor-default'
-                : isAdding
-                ? 'bg-blue-100 text-blue-800 cursor-not-allowed'
-                : 'bg-gray-800 text-white hover:bg-gray-500'
-            }`}
-          >
-            <div className="flex items-center justify-center gap-1">
-            {isAdded ? (
-              <>
-                <FiCheck className="inline mr-1 text-xs" />
-                Added
-              </>
-            ) : isAdding ? (
-              'Adding...'
-            ) : (
-              <>
-                <FiPlus className="inline mr-1 text-xs" />
-                Add
-              </>
-            )}
-            </div>
-          </button>
+        <div className={`flex min-w-0 flex-1 flex-col ${isModal ? 'p-2' : viewMode === 'list' ? '' : 'pt-3'}`}>
+          <h3 className={`line-clamp-2 font-semibold leading-tight text-[var(--neutral-900)] ${isModal ? 'text-xs' : 'text-sm md:text-base'}`}>
+            {bookInfo.title}
+          </h3>
 
-          <div className="flex-1 flex items-center justify-center">
-            <WishlistAction
-              bookId={book.id}
-              title={bookInfo.title}
-              authors={bookInfo.authors}
-              coverImage={bookInfo.imageLinks?.thumbnail}
-              className="text-xs"
-            />
+          <p className={`mt-1 line-clamp-1 text-[var(--neutral-600)] ${isModal ? 'text-xs' : 'text-xs md:text-sm'}`}>
+            by {bookInfo.authors?.length ? bookInfo.authors.join(', ') : 'Unknown author'}
+          </p>
+
+          {!isModal ? (
+            <p className={`mt-2 text-xs text-[var(--neutral-600)] ${viewMode === 'list' ? 'line-clamp-4' : 'line-clamp-3'}`}>
+              {bookDescription}
+            </p>
+          ) : null}
+
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {publicationYear ? <Badge variant="neutral">{publicationYear}</Badge> : null}
+            {bookInfo.pageCount ? <Badge variant="neutral">{bookInfo.pageCount}p</Badge> : null}
+            {bookInfo.categories?.[0] ? <Badge variant="info" className="max-w-[120px] truncate">{bookInfo.categories[0]}</Badge> : null}
           </div>
 
-          {!isModal && (
-            <Link
-              href={`/books/${book.id}`}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-xs font-medium justify-center flex items-center flex-2"
+          <div className={`mt-3 flex gap-2 ${isModal ? 'flex-col' : viewMode === 'list' ? 'items-center' : 'flex-col'} ${!isModal ? 'mt-auto' : ''}`}>
+            <Button
+              onClick={handlePrimaryAction}
+              disabled={isAdding || isAdded}
+              size="sm"
+              className={`${isModal ? '' : 'h-9'} ${viewMode === 'list' && !isModal ? 'w-auto px-3' : 'w-full'}`}
             >
-              Details
-            </Link>
-          )}
+              {isAdded ? (
+                <>
+                  <FiCheck />
+                  Added
+                </>
+              ) : isAdding ? (
+                'Adding...'
+              ) : (
+                <>
+                  <FiPlus />
+                  Add To Shelf
+                </>
+              )}
+            </Button>
+
+            <div className={`${viewMode === 'list' && !isModal ? '' : 'w-full'} flex items-center gap-2`}>
+              <WishlistAction
+                bookId={book.id}
+                title={bookInfo.title}
+                authors={bookInfo.authors}
+                coverImage={bookInfo.imageLinks?.thumbnail}
+                className="h-9 w-9"
+              />
+
+              {!isModal ? (
+                <Link href={`/books/${book.id}`} className={viewMode === 'list' ? '' : 'flex-1'}>
+                  <Button variant="secondary" size="sm" className={viewMode === 'list' ? 'h-9 px-3' : 'h-9 w-full'}>
+                    Details
+                    <FiArrowRight className="text-xs" />
+                  </Button>
+                </Link>
+              ) : null}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

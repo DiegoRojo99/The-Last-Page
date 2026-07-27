@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-
-const GOOGLE_BOOKS_API_URL = 'https://www.googleapis.com/books/v1/volumes';
+import { GoogleBooksApiError, googleBooksSearch } from '@/lib/google-books';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -14,15 +13,33 @@ export async function GET(request: Request) {
   }
 
   try {
-    const response = await fetch(`${GOOGLE_BOOKS_API_URL}?q=${encodeURIComponent(query)}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch data from Google Books API');
+    const data = await googleBooksSearch(query);
+    return NextResponse.json(data.items || []);
+  }
+  catch (error) {
+    if (error instanceof GoogleBooksApiError) {
+      if (error.status === 429) {
+        return NextResponse.json(
+          {
+            error: 'Google Books API quota/rate limit reached. Please wait and try again later.',
+            retryAfterSeconds: error.retryAfterSeconds,
+          },
+          { status: 429 }
+        );
+      }
+
+      if (error.status >= 500) {
+        return NextResponse.json(
+          {
+            error: 'Google Books is temporarily unavailable. Please retry in a moment.',
+            retryAfterSeconds: error.retryAfterSeconds,
+          },
+          { status: 503 }
+        );
+      }
     }
 
-    const data = await response.json();
-    return NextResponse.json(data.items || []);
-  } 
-  catch (error) {
+    console.error('Error fetching books:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'An error occurred' },
       { status: 500 }

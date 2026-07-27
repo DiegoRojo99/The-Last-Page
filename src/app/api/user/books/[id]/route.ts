@@ -1,11 +1,9 @@
 import { CompleteUserBook } from "@/app/utils/types/booksAPI";
 import { readingSession, userBook } from "@/app/utils/types/booksDB";
 import { adminAuth, adminDB } from "@/lib/firebase-admin";
+import { googleBookDetails } from "@/lib/google-books";
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from 'firebase-admin/firestore';
-
-// Google Books API URL
-const GOOGLE_BOOKS_API_URL = 'https://www.googleapis.com/books/v1/volumes';
 
 async function verifyUser(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
@@ -41,22 +39,13 @@ export async function GET(req: NextRequest) {
     // Get user book data
     const userBook = bookDoc.data() as userBook;
 
-    // Fetch additional book information from Google Books API
-    const googleBooksApiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
-    if (!googleBooksApiKey) {
-      throw new Error("Google Books API key is not configured");
+    let bookInfo: { volumeInfo?: CompleteUserBook['volumeInfo'] } | null = null;
+    try {
+      bookInfo = await googleBookDetails(userBook.id);
+    } catch (error) {
+      // Keep user data available even if external API is currently rate-limited.
+      console.error(`Failed to fetch Google Books details for ${userBook.id}:`, error);
     }
-
-    // Fetch book info from Google Books API
-    const fetchBookInfo = async (bookId: string) => {
-      const response = await fetch(`${GOOGLE_BOOKS_API_URL}/${bookId}?key=${googleBooksApiKey}`);
-      if (!response.ok) {
-        console.error(`Failed to fetch book info for ID: ${bookId}`);
-        return null;
-      }
-      return response.json();
-    };
-    const bookInfo = await fetchBookInfo(userBook.id);
 
     // Get user reading sessions
     const sessionsSnapshot = await adminDB
@@ -75,7 +64,7 @@ export async function GET(req: NextRequest) {
     const bookWithVolumeInfo: CompleteUserBook = {
       id: userBook.id,
       userInfo: { ...userBook },
-      volumeInfo: bookInfo ? bookInfo.volumeInfo : null,
+      volumeInfo: bookInfo?.volumeInfo ?? null,
       sessions
     };
 
