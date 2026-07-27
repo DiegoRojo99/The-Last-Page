@@ -18,10 +18,10 @@ This roadmap includes planned work only. Completed items were removed to keep fo
 
 ## Phase 2 - Reading depth
 
-- [ ] Add edit and delete actions for reading sessions
-- [ ] Add reading notes history and highlights
-- [ ] Add quick session and quick progress entry from more pages
-- [ ] Add session templates (short sprint, deep focus, audiobook)
+- [x] Add edit and delete actions for reading sessions
+- [x] Add reading notes history and highlights
+- [x] Add quick session and quick progress entry from more pages
+- [x] Add session templates (short sprint, deep focus, audiobook)
 
 ## Phase 3 - Series tracking (core feature)
 

@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { readingSession } from '@/app/utils/types/booksDB';
-import { FiClock, FiBookOpen, FiPlus, FiTrendingUp, FiCalendar, FiEdit2, FiSave, FiX } from 'react-icons/fi';
+import { FiClock, FiBookOpen, FiPlus, FiTrendingUp, FiCalendar, FiEdit2, FiSave, FiTrash2, FiX } from 'react-icons/fi';
 import Link from 'next/link';
 import Image from 'next/image';
 import { CompleteUserBook } from '@/app/utils/types/booksAPI';
+import { useToast } from '@/app/components/ui';
 
 interface ReadingProgressProps {
   bookId: string;
@@ -31,6 +32,7 @@ const getTimestamp = (date: unknown) => {
 };
 
 export default function ReadingProgress({ bookId }: ReadingProgressProps) {
+  const { pushToast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [book, setBook] = useState<CompleteUserBook | null>(null);
   const [sessions, setSessions] = useState<readingSession[]>([]);
@@ -39,6 +41,15 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
   const [editingTotalPages, setEditingTotalPages] = useState(false);
   const [newTotalPages, setNewTotalPages] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [isSavingSession, setIsSavingSession] = useState(false);
+  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
+  const [editingSessionData, setEditingSessionData] = useState({
+    durationMinutes: '',
+    pagesRead: '',
+    sessionDate: '',
+    notes: '',
+  });
   const [sessionData, setSessionData] = useState({
     durationMinutes: '',
     pagesRead: '',
@@ -46,6 +57,12 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
     notes: ''
   });
   const router = useRouter();
+
+  const sessionTemplates = [
+    { id: 'sprint', label: 'Short Sprint', durationMinutes: '20', pagesRead: '8', notes: 'Quick sprint session' },
+    { id: 'focus', label: 'Deep Focus', durationMinutes: '45', pagesRead: '20', notes: 'Focused deep work reading block' },
+    { id: 'audio', label: 'Audiobook', durationMinutes: '30', pagesRead: '0', notes: 'Audiobook listening session' },
+  ];
 
   const fetchBookData = useCallback(async (currentUser: User) => {
     setLoading(true);
@@ -104,15 +121,182 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
       });
 
       if (response.ok) {
-        setSessionData({ durationMinutes: '', pagesRead: '', notes: '', sessionDate: '' });
+        setSessionData({ durationMinutes: '', pagesRead: '', notes: '', sessionDate: `${new Date().toISOString().slice(0, 16)}` });
         setShowAddSession(false);
+        pushToast({
+          title: 'Session added',
+          description: 'Your reading session was saved.',
+          variant: 'success',
+        });
         fetchBookData(user);
+      } else {
+        const body = await response.json().catch(() => null) as { error?: string } | null;
+        pushToast({
+          title: 'Could not add session',
+          description: body?.error || 'Please try again.',
+          variant: 'error',
+        });
       }
     } catch (error) {
       console.error('Error adding session:', error);
+      pushToast({
+        title: 'Could not add session',
+        description: 'Unexpected error while saving your session.',
+        variant: 'error',
+      });
     }
     finally {
       setIsAdding(false);
+    }
+  };
+
+  const applyTemplate = (template: { durationMinutes: string; pagesRead: string; notes: string; }) => {
+    setSessionData((prev) => ({
+      ...prev,
+      durationMinutes: template.durationMinutes,
+      pagesRead: template.pagesRead,
+      notes: template.notes,
+    }));
+    setShowAddSession(true);
+  };
+
+  const toInputDateValue = (timestamp: unknown) => {
+    const date = new Date(getTimestamp(timestamp));
+    if (Number.isNaN(date.getTime())) {
+      return `${new Date().toISOString().slice(0, 16)}`;
+    }
+    return date.toISOString().slice(0, 16);
+  };
+
+  const startEditingSession = (session: readingSession) => {
+    setEditingSessionId(session.id);
+    setEditingSessionData({
+      durationMinutes: String(session.durationMinutes || ''),
+      pagesRead: String(session.pagesRead || 0),
+      sessionDate: toInputDateValue(session.sessionDate),
+      notes: session.notes || '',
+    });
+  };
+
+  const cancelEditingSession = () => {
+    setEditingSessionId(null);
+    setEditingSessionData({
+      durationMinutes: '',
+      pagesRead: '',
+      sessionDate: '',
+      notes: '',
+    });
+  };
+
+  const saveSessionEdit = async (sessionId: string) => {
+    if (!user) return;
+
+    const durationMinutes = parseInt(editingSessionData.durationMinutes, 10);
+    const pagesRead = parseInt(editingSessionData.pagesRead || '0', 10);
+
+    if (!durationMinutes || durationMinutes <= 0) {
+      pushToast({
+        title: 'Invalid duration',
+        description: 'Duration must be greater than 0.',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    if (pagesRead < 0) {
+      pushToast({
+        title: 'Invalid pages',
+        description: 'Pages read must be 0 or more.',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    try {
+      setIsSavingSession(true);
+      const token = await user.getIdToken();
+      const response = await fetch(`/api/user/books/${bookId}/sessions/${sessionId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          durationMinutes,
+          pagesRead,
+          notes: editingSessionData.notes,
+          sessionDate: editingSessionData.sessionDate ? new Date(editingSessionData.sessionDate) : undefined,
+        }),
+      });
+
+      if (response.ok) {
+        pushToast({
+          title: 'Session updated',
+          description: 'Your session changes were saved.',
+          variant: 'success',
+        });
+        cancelEditingSession();
+        fetchBookData(user);
+      } else {
+        const body = await response.json().catch(() => null) as { error?: string } | null;
+        pushToast({
+          title: 'Could not update session',
+          description: body?.error || 'Please try again.',
+          variant: 'error',
+        });
+      }
+    } catch (error) {
+      console.error('Error updating session:', error);
+      pushToast({
+        title: 'Could not update session',
+        description: 'Unexpected error while updating this session.',
+        variant: 'error',
+      });
+    } finally {
+      setIsSavingSession(false);
+    }
+  };
+
+  const deleteSession = async (sessionId: string) => {
+    if (!user) return;
+
+    const confirmed = window.confirm('Delete this reading session? This will recalculate progress.');
+    if (!confirmed) return;
+
+    try {
+      setDeletingSessionId(sessionId);
+      const token = await user.getIdToken();
+      const response = await fetch(`/api/user/books/${bookId}/sessions/${sessionId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        pushToast({
+          title: 'Session deleted',
+          description: 'The session was removed and progress was recalculated.',
+          variant: 'success',
+        });
+        fetchBookData(user);
+      } else {
+        const body = await response.json().catch(() => null) as { error?: string } | null;
+        pushToast({
+          title: 'Could not delete session',
+          description: body?.error || 'Please try again.',
+          variant: 'error',
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting session:', error);
+      pushToast({
+        title: 'Could not delete session',
+        description: 'Unexpected error while deleting this session.',
+        variant: 'error',
+      });
+    } finally {
+      setDeletingSessionId(null);
     }
   };
 
@@ -179,6 +363,8 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
 
   const totalMinutes = sessions.reduce((sum, session) => sum + session.durationMinutes, 0);
   const totalPages = sessions.reduce((sum, session) => sum + (session.pagesRead || 0), 0);
+  const sortedSessions = [...sessions].sort((a, b) => getTimestamp(b.sessionDate) - getTimestamp(a.sessionDate));
+  const highlights = sortedSessions.filter((session) => Boolean(session.notes?.trim())).slice(0, 4);
   const progressPercentage = book?.userInfo.totalPages && book?.userInfo.currentPage
     ? Math.min((book.userInfo.currentPage / book.userInfo.totalPages) * 100, 100)
     : 0;
@@ -342,15 +528,31 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
         </div>
       </div>
 
-      {/* Add Session Button */}
-      <div className="mb-6">
-        <button
-          onClick={() => setShowAddSession(true)}
-          className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors flex items-center gap-2"
-        >
-          <FiPlus className="text-sm" />
-          Add Reading Session
-        </button>
+      {/* Add Session and Templates */}
+      <div className="mb-6 space-y-3">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setShowAddSession(true)}
+            className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors flex items-center gap-2"
+          >
+            <FiPlus className="text-sm" />
+            Add Reading Session
+          </button>
+
+          {sessionTemplates.map((template) => (
+            <button
+              key={template.id}
+              onClick={() => applyTemplate(template)}
+              className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              {template.label}
+            </button>
+          ))}
+        </div>
+
+        <p className="text-xs text-gray-500">
+          Templates help you quickly log common sessions (short sprint, deep focus, audiobook).
+        </p>
       </div>
 
       {/* Add Session Form */}
@@ -425,6 +627,22 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
         </div>
       )}
 
+      {highlights.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm border mb-6">
+          <div className="p-4 sm:p-6 border-b">
+            <h3 className="text-lg font-semibold text-gray-900">Reading Notes Highlights</h3>
+          </div>
+          <div className="grid gap-3 p-4 sm:p-6 md:grid-cols-2">
+            {highlights.map((session) => (
+              <div key={`highlight-${session.id}`} className="rounded-lg border border-blue-100 bg-blue-50/40 p-3">
+                <p className="text-sm text-gray-700">&ldquo;{session.notes}&rdquo;</p>
+                <p className="mt-2 text-xs text-gray-500">{formatDate(session.sessionDate)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Reading Sessions */}
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-4 sm:p-6 border-b">
@@ -445,54 +663,133 @@ export default function ReadingProgress({ bookId }: ReadingProgressProps) {
               <p className="text-sm text-gray-500">Add your first session to start tracking your progress!</p>
             </div>
           ) : (
-            sessions
-              .sort((a, b) => {
-                return getTimestamp(b.sessionDate) - getTimestamp(a.sessionDate);
-              })
-              .map((session, index) => (
+            sortedSessions.map((session, index) => (
               <div key={session.id} className="p-4 sm:p-6 hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="flex-1">
-                    {/* Date and primary info */}
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="bg-blue-100 p-1.5 rounded-full">
-                        <FiCalendar className="text-gray-800 text-xs" />
-                      </div>
-                      <span className="font-medium text-gray-900 text-sm">
-                        {formatDate(session.sessionDate)}
-                      </span>
-                      {index === 0 && (
-                        <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-medium">
-                          Latest
-                        </span>
-                      )}
-                    </div>
-                    
-                    {/* Stats */}
-                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-600 mb-2">
-                      <span className="flex items-center gap-1.5">
-                        <div className="bg-orange-100 p-1 rounded">
-                          <FiClock className="text-orange-600 text-xs" />
+                    {editingSessionId === session.id ? (
+                      <div className="space-y-3 rounded-lg border border-blue-100 bg-blue-50/40 p-3">
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <label className="text-sm text-gray-700">
+                            Duration (min)
+                            <input
+                              type="number"
+                              value={editingSessionData.durationMinutes}
+                              onChange={(e) => setEditingSessionData((prev) => ({ ...prev, durationMinutes: e.target.value }))}
+                              className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+                              min="1"
+                            />
+                          </label>
+
+                          <label className="text-sm text-gray-700">
+                            Pages read
+                            <input
+                              type="number"
+                              value={editingSessionData.pagesRead}
+                              onChange={(e) => setEditingSessionData((prev) => ({ ...prev, pagesRead: e.target.value }))}
+                              className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+                              min="0"
+                            />
+                          </label>
                         </div>
-                        <span className="font-medium">{session.durationMinutes}</span>
-                        <span className="text-gray-500">min</span>
-                      </span>
-                      {session.pagesRead && session.pagesRead > 0 && (
-                        <span className="flex items-center gap-1.5">
-                          <div className="bg-purple-100 p-1 rounded">
-                            <FiBookOpen className="text-purple-600 text-xs" />
-                          </div>
-                          <span className="font-medium">{session.pagesRead}</span>
-                          <span className="text-gray-500">page{session.pagesRead !== 1 ? 's' : ''}</span>
-                        </span>
-                      )}
-                    </div>
-                    
-                    {/* Notes */}
-                    {session.notes && (
-                      <div className="mt-3 p-3 bg-gray-50 rounded-lg border-l-4 border-blue-200">
-                        <p className="text-sm text-gray-700 italic">&ldquo;{session.notes}&rdquo;</p>
+
+                        <label className="text-sm text-gray-700 block">
+                          Session date
+                          <input
+                            type="datetime-local"
+                            value={editingSessionData.sessionDate}
+                            onChange={(e) => setEditingSessionData((prev) => ({ ...prev, sessionDate: e.target.value }))}
+                            className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+                          />
+                        </label>
+
+                        <label className="text-sm text-gray-700 block">
+                          Notes
+                          <textarea
+                            rows={2}
+                            value={editingSessionData.notes}
+                            onChange={(e) => setEditingSessionData((prev) => ({ ...prev, notes: e.target.value }))}
+                            className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+                          />
+                        </label>
+
+                        <div className="flex gap-2">
+                          <button
+                            disabled={isSavingSession}
+                            onClick={() => void saveSessionEdit(session.id)}
+                            className="inline-flex items-center gap-1 rounded bg-gray-800 px-3 py-1.5 text-sm text-white hover:bg-gray-700 disabled:opacity-50"
+                          >
+                            <FiSave className="text-xs" />
+                            {isSavingSession ? 'Saving...' : 'Save'}
+                          </button>
+                          <button
+                            onClick={cancelEditingSession}
+                            className="inline-flex items-center gap-1 rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            <FiX className="text-xs" />
+                            Cancel
+                          </button>
+                        </div>
                       </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="bg-blue-100 p-1.5 rounded-full">
+                            <FiCalendar className="text-gray-800 text-xs" />
+                          </div>
+                          <span className="font-medium text-gray-900 text-sm">
+                            {formatDate(session.sessionDate)}
+                          </span>
+                          {index === 0 && (
+                            <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-medium">
+                              Latest
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-600 mb-2">
+                          <span className="flex items-center gap-1.5">
+                            <div className="bg-orange-100 p-1 rounded">
+                              <FiClock className="text-orange-600 text-xs" />
+                            </div>
+                            <span className="font-medium">{session.durationMinutes}</span>
+                            <span className="text-gray-500">min</span>
+                          </span>
+                          {session.pagesRead && session.pagesRead > 0 && (
+                            <span className="flex items-center gap-1.5">
+                              <div className="bg-purple-100 p-1 rounded">
+                                <FiBookOpen className="text-purple-600 text-xs" />
+                              </div>
+                              <span className="font-medium">{session.pagesRead}</span>
+                              <span className="text-gray-500">page{session.pagesRead !== 1 ? 's' : ''}</span>
+                            </span>
+                          )}
+                        </div>
+
+                        {session.notes ? (
+                          <div className="mt-3 p-3 bg-gray-50 rounded-lg border-l-4 border-blue-200">
+                            <p className="text-sm text-gray-700 italic">&ldquo;{session.notes}&rdquo;</p>
+                          </div>
+                        ) : null}
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <button
+                            onClick={() => startEditingSession(session)}
+                            className="inline-flex items-center gap-1 rounded border border-gray-300 px-2.5 py-1 text-xs text-gray-700 hover:bg-gray-50"
+                          >
+                            <FiEdit2 className="text-xs" />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => void deleteSession(session.id)}
+                            disabled={deletingSessionId === session.id}
+                            className="inline-flex items-center gap-1 rounded border border-red-200 bg-red-50 px-2.5 py-1 text-xs text-red-700 hover:bg-red-100 disabled:opacity-50"
+                          >
+                            <FiTrash2 className="text-xs" />
+                            {deletingSessionId === session.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </div>
+                      </>
                     )}
                   </div>
                   

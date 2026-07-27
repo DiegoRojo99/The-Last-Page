@@ -192,6 +192,14 @@ export default function BookshelfPage() {
 
   const displayItems = selectedTab === 'wishlist' ? wishlist : filteredBooks;
 
+  function handleBookUpdate(updatedBook: userBook) {
+    setBooks((prev) => prev.map((book) => (book.id === updatedBook.id ? { ...book, ...updatedBook } : book)));
+  }
+
+  function handleSessionAdded() {
+    setRefresh((prev) => !prev);
+  }
+
   const visibleSelectedCount = useMemo(
     () => filteredBooks.filter((book) => selectedBookIds.includes(book.id)).length,
     [filteredBooks, selectedBookIds]
@@ -594,7 +602,11 @@ export default function BookshelfPage() {
                           </label>
                         ) : null}
 
-                        <BookCard book={book} />
+                        <BookCard
+                          book={book}
+                          onBookUpdate={handleBookUpdate}
+                          onSessionAdded={handleSessionAdded}
+                        />
 
                         {(bookTags[book.id] || []).length > 0 ? (
                           <div className="flex w-[170px] flex-wrap gap-1">
