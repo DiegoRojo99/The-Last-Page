@@ -1,12 +1,13 @@
 'use client';
 
-import React from "react";
-import { wishlistBook } from "../utils/types/booksDB";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiEye, FiPlus } from "react-icons/fi";
-import WishlistAction from "../components/WishlistAction";
+import { FiArrowRight, FiBookmark, FiEye, FiPlus } from "react-icons/fi";
 import { auth } from "@/lib/firebase";
+import WishlistAction from "../components/WishlistAction";
+import { wishlistBook } from "../utils/types/booksDB";
+import { Badge, Button } from "../components/ui";
 
 interface WishlistCardProps {
   book: wishlistBook;
@@ -15,11 +16,14 @@ interface WishlistCardProps {
 }
 
 export function WishlistCard({ book, onRemoved, onMoveToLibrary }: WishlistCardProps) {
+  const [isMoving, setIsMoving] = useState(false);
+
   const handleMoveToLibrary = async () => {
     const user = auth.currentUser;
     if (!user) return;
 
     try {
+      setIsMoving(true);
       const token = await user.getIdToken();
       const response = await fetch(`/api/user/wishlist/${book.id}`, {
         method: 'POST',
@@ -37,12 +41,14 @@ export function WishlistCard({ book, onRemoved, onMoveToLibrary }: WishlistCardP
       }
     } catch (error) {
       console.error('Error moving book to library:', error);
+    } finally {
+      setIsMoving(false);
     }
   };
 
   const formatDate = (timestamp: unknown) => {
     if (!timestamp) return '';
-    
+
     let date: Date;
     if (typeof timestamp === 'object' && timestamp !== null && '_seconds' in timestamp) {
       date = new Date((timestamp as { _seconds: number })._seconds * 1000);
@@ -55,31 +61,29 @@ export function WishlistCard({ book, onRemoved, onMoveToLibrary }: WishlistCardP
     } else {
       return '';
     }
-    
+
     return date.toLocaleDateString();
   };
 
   return (
-    <div className="flex flex-col items-center w-fit h-fit group">
-      {/* Cover Image */}
-      <div className="relative">
+    <article className="group flex w-[170px] flex-col gap-2">
+      <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-[var(--neutral-200)] bg-[var(--neutral-100)] shadow-[var(--shadow-sm)] transition-all duration-[var(--motion-normal)] ease-[var(--motion-ease)] group-hover:-translate-y-1 group-hover:shadow-[var(--shadow-md)]">
         {book.coverImage ? (
           <Image
-            src={book.coverImage} 
-            alt={book.title} 
-            className="border rounded-lg object-cover w-[128px] h-[193px] group-hover:shadow-md transition-shadow"
-            width={128}
-            height={193}
+            src={book.coverImage}
+            alt={book.title}
+            className="h-[240px] w-full object-cover"
+            width={170}
+            height={240}
             loading="lazy"
           />
         ) : (
-          <div className="w-[128px] h-[193px] flex items-center justify-center bg-gray-200 text-gray-500 text-sm rounded-lg group-hover:shadow-md transition-shadow">
-            No Cover
+          <div className="flex h-[240px] w-full items-center justify-center bg-[var(--neutral-200)] p-4 text-center text-sm text-[var(--neutral-500)]">
+            No Cover Available
           </div>
         )}
-        
-        {/* Wishlist overlay */}
-        <div className="absolute top-2 right-2">
+
+        <div className="absolute right-2 top-2">
           <WishlistAction
             bookId={book.id}
             title={book.title}
@@ -87,44 +91,39 @@ export function WishlistCard({ book, onRemoved, onMoveToLibrary }: WishlistCardP
             coverImage={book.coverImage}
             isInWishlist={true}
             onWishlistChange={onRemoved}
-            className="bg-white/90 backdrop-blur-sm shadow-sm"
+            className="border-0 bg-white/90 shadow-[var(--shadow-sm)]"
           />
         </div>
       </div>
 
-      {/* Book Info */}
-      <div className="p-1 w-[128px]">
-        <h3 className="text-sm font-semibold line-clamp-1">{book.title}</h3>
-        {book.authors.length > 0 && (
-          <p className="text-sm text-gray-500 mt-1 line-clamp-1">
-            {book.authors.join(', ')}
+      <div className="space-y-2">
+        <div className="space-y-1">
+          <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-[var(--neutral-900)]">{book.title}</h3>
+          <p className="line-clamp-1 text-xs text-[var(--neutral-600)]">
+            {book.authors.length > 0 ? book.authors.join(', ') : 'Unknown author'}
           </p>
-        )}
-        
-        <p className="text-xs text-gray-500 mt-1">
-          Added {formatDate(book.addedAt)}
-        </p>
-        
-        {/* Actions */}
-        <div className="flex items-center justify-between mt-2 gap-1">
-          <button
-            onClick={handleMoveToLibrary}
-            className="flex-1 bg-gray-800 text-white text-xs px-2 py-1 rounded hover:bg-gray-500 transition-colors flex items-center justify-center gap-1"
-            title="Add to library"
-          >
-            <FiPlus className="text-xs" />
-            Add
-          </button>
-          
-          <Link
-            href={`/books/${book.id}`}
-            className="text-gray-500 hover:text-gray-800 transition-colors p-1"
-            title="View book details"
-          >
-            <FiEye className="text-sm" />
+          <p className="text-[11px] text-[var(--neutral-500)]">Added {formatDate(book.addedAt)}</p>
+        </div>
+
+        <div className="flex items-center justify-between gap-2">
+          <Badge variant="warning">
+            <FiBookmark className="mr-1" />
+            Wishlist
+          </Badge>
+          <Link href={`/books/${book.id}`} title="View public book details">
+            <Button variant="ghost" size="sm" className="h-8 px-2 text-xs">
+              <FiEye />
+              Details
+            </Button>
           </Link>
         </div>
+
+        <Button onClick={handleMoveToLibrary} fullWidth size="sm" disabled={isMoving} className="h-9 text-xs">
+          <FiPlus />
+          {isMoving ? 'Adding...' : 'Move To Library'}
+          {!isMoving && <FiArrowRight className="text-[11px]" />}
+        </Button>
       </div>
-    </div>
+    </article>
   );
 }

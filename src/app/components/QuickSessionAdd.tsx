@@ -51,11 +51,13 @@ export default function QuickSessionAdd({ bookId, onSessionAdded }: QuickSession
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full text-xs bg-gray-800 text-white px-2 py-1 rounded hover:bg-gray-500 transition-colors flex items-center justify-center gap-1"
+        className="w-full rounded-[var(--radius-md)] border border-[var(--neutral-300)] bg-[var(--color-paper)] px-2 py-2 text-xs font-semibold text-[var(--neutral-700)] transition-colors hover:bg-[var(--neutral-100)] hover:text-[var(--neutral-900)]"
         title="Add quick reading session"
       >
-        <FiPlus className="text-xs" />
-        Session
+        <span className="inline-flex items-center justify-center gap-1">
+          <FiPlus className="text-xs" />
+          Log Session
+        </span>
       </button>
     );
   }

@@ -1,100 +1,100 @@
 'use client';
 
 import React from "react";
-import { userBook } from "../utils/types/booksDB";
 import Image from "next/image";
 import Link from "next/link";
-import { FiEye } from "react-icons/fi";
+import { FiArrowRight, FiBookOpen, FiEye } from "react-icons/fi";
 import QuickSessionAdd from "../components/QuickSessionAdd";
+import { userBook } from "../utils/types/booksDB";
+import { Badge, Button } from "../components/ui";
 
 interface BookCardProps {
-  book: userBook
+  book: userBook;
+}
+
+function getStatusMeta(status: userBook['status']) {
+  if (status === 'reading') return { label: 'Reading', variant: 'info' as const };
+  if (status === 'completed') return { label: 'Completed', variant: 'success' as const };
+  if (status === 'abandoned') return { label: 'Abandoned', variant: 'danger' as const };
+  return { label: 'To Read', variant: 'neutral' as const };
 }
 
 export function BookCard({ book }: BookCardProps) {
-  const progressPercentage = book.totalPages && book.currentPage 
+  const progressPercentage = book.totalPages && book.currentPage
     ? Math.min((book.currentPage / book.totalPages) * 100, 100)
     : 0;
 
-  const handleSessionAdded = () => {
-    // In a real app, you might want to refetch the book data here
-    // For now, we'll rely on the parent component to refresh
-  };
+  const statusMeta = getStatusMeta(book.status);
 
   return (
-    <div className="flex flex-col items-center w-fit h-fit group">
-      {/* Cover Image */}
-      <Link href={`/bookshelf/${book.id}`} className="relative">
+    <article className="group flex w-[170px] flex-col gap-2">
+      <Link
+        href={`/bookshelf/${book.id}`}
+        className="relative block overflow-hidden rounded-[var(--radius-lg)] border border-[var(--neutral-200)] bg-[var(--neutral-100)] shadow-[var(--shadow-sm)] transition-all duration-[var(--motion-normal)] ease-[var(--motion-ease)] group-hover:-translate-y-1 group-hover:shadow-[var(--shadow-md)]"
+      >
         {book.coverImage ? (
           <Image
-            src={book.coverImage} 
-            alt={book.title} 
-            className="border rounded-lg object-cover w-[128px] h-[193px] group-hover:shadow-md transition-shadow"
-            width={128}
-            height={193}
+            src={book.coverImage}
+            alt={book.title}
+            className="h-[240px] w-full object-cover"
+            width={170}
+            height={240}
             loading="lazy"
           />
         ) : (
-          <div className="w-[128px] h-[193px] flex items-center justify-center bg-gray-200 text-gray-500 text-sm rounded-lg group-hover:shadow-md transition-shadow">
-            No Cover
+          <div className="flex h-[240px] w-full items-center justify-center bg-[var(--neutral-200)] p-4 text-center text-sm text-[var(--neutral-500)]">
+            No Cover Available
           </div>
         )}
-        
-        {/* Progress overlay for reading books */}
-        {book.status === 'reading' && book.totalPages && book.currentPage && (
-          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white text-xs p-1 rounded-b-lg">
-            <div className="flex justify-between items-center mb-1">
-              <span>{book.currentPage}/{book.totalPages}</span>
+
+        {book.status === 'reading' && book.totalPages && (
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/70 to-transparent px-3 pb-2 pt-6 text-white">
+            <div className="mb-1 flex items-center justify-between text-[11px]">
+              <span>{book.currentPage || 0} / {book.totalPages} pages</span>
               <span>{progressPercentage.toFixed(0)}%</span>
             </div>
-            <div className="w-full bg-gray-600 rounded-full h-1">
-              <div 
-                className="bg-blue-400 h-1 rounded-full"
+            <div className="h-1.5 w-full rounded-full bg-white/25">
+              <div
+                className="h-1.5 rounded-full bg-[var(--color-accent)] transition-all duration-[var(--motion-normal)]"
                 style={{ width: `${progressPercentage}%` }}
-              ></div>
+              />
             </div>
           </div>
         )}
       </Link>
 
-      {/* Book Info */}
-      <div className="p-1 w-[128px]">
-        <h3 className="text-sm font-semibold line-clamp-1">{book.title}</h3>
-        {book.authors.length > 0 && (
-          <p className="text-sm text-gray-500 mt-1 line-clamp-1">
-            {book.authors.join(', ')}
+      <div className="space-y-2">
+        <div className="space-y-1">
+          <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-[var(--neutral-900)]">{book.title}</h3>
+          <p className="line-clamp-1 text-xs text-[var(--neutral-600)]">
+            {book.authors.length > 0 ? book.authors.join(', ') : 'Unknown author'}
           </p>
-        )}
-        
-        {/* Status Badge */}
-        <div className="flex items-center justify-between mt-2">
-          <span className={`px-2 py-1 rounded text-xs font-medium ${
-            book.status === 'completed' ? 'bg-green-100 text-green-800' :
-            book.status === 'reading' ? 'bg-blue-100 text-blue-800' :
-            book.status === 'abandoned' ? 'bg-red-100 text-red-800' :
-            'bg-gray-100 text-gray-800'
-          }`}>
-            {book.status === 'notStarted' ? 'To Read' : 
-             book.status.charAt(0).toUpperCase() + book.status.slice(1)}
-          </span>
-          
-          {/* Book Details Link */}
-          <Link
-            href={`/books/${book.id}`}
-            className="text-gray-500 hover:text-gray-800 transition-colors p-1"
-            title="View book details"
-          >
-            <FiEye className="text-sm" />
+        </div>
+
+        <div className="flex items-center justify-between gap-2">
+          <Badge variant={statusMeta.variant}>{statusMeta.label}</Badge>
+          <Link href={`/books/${book.id}`} title="View public book details">
+            <Button variant="ghost" size="sm" className="h-8 px-2 text-xs">
+              <FiEye />
+              Details
+            </Button>
           </Link>
         </div>
-        
-        {/* Actions for reading books */}
+
+        <Link href={`/bookshelf/${book.id}`}>
+          <Button size="sm" fullWidth className="h-9 text-xs">
+            <FiBookOpen />
+            Open Progress
+            <FiArrowRight className="text-[11px]" />
+          </Button>
+        </Link>
+
         {book.status === 'reading' && (
-          <div className="flex w-full gap-1 mt-1">
-            <QuickSessionAdd bookId={book.id} onSessionAdded={handleSessionAdded} />
+          <div className="pt-0.5">
+            <QuickSessionAdd bookId={book.id} />
           </div>
         )}
       </div>
-    </div>
+    </article>
   );
 }

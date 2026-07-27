@@ -70,12 +70,12 @@ This checklist breaks down the redesign and feature roadmap into small, trackabl
 - [x] Improve loading states with skeletons
 
 ### 3.2 Book cards and interactions
-- [ ] Redesign BookCard layout
-- [ ] Improve progress overlay visibility
-- [ ] Standardize status badges style
-- [ ] Add clearer CTA hierarchy on cards
-- [ ] Improve wishlist card visuals
-- [ ] Add hover/focus motion polish
+- [x] Redesign BookCard layout
+- [x] Improve progress overlay visibility
+- [x] Standardize status badges style
+- [x] Add clearer CTA hierarchy on cards
+- [x] Improve wishlist card visuals
+- [x] Add hover/focus motion polish
 
 ### 3.3 Add book flow
 - [ ] Redesign Add Book modal layout
