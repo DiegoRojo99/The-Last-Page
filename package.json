@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "cleanup:reading-sessions": "node scripts/deleteReadingSessions.js"
   },
   "dependencies": {
     "dompurify": "^3.2.5",
