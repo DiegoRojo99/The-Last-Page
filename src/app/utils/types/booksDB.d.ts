@@ -15,15 +15,6 @@ type userBook = {
   notes?: string;
 }
 
-type readingSession = {
-  id: string;
-  bookId: string;
-  durationMinutes: number;
-  pagesRead?: number;
-  sessionDate: Timestamp;
-  notes?: string;
-}
-
 type achievement = {
   id: string;
   title: string;
@@ -50,7 +41,6 @@ type wishlistBook =  bookDB & {
 
 export {
   userBook,
-  readingSession,
   achievement,
   bookDB,
   libraryBook,

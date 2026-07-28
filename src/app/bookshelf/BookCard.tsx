@@ -4,7 +4,6 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FiArrowRight, FiBookOpen, FiEye } from "react-icons/fi";
-import QuickSessionAdd from "../components/QuickSessionAdd";
 import QuickProgressUpdate from "../components/QuickProgressUpdate";
 import { userBook } from "../utils/types/booksDB";
 import { Badge, Button } from "../components/ui";
@@ -13,7 +12,6 @@ import { normalizeGoogleBooksImageUrl } from "../utils/common";
 interface BookCardProps {
   book: userBook;
   onBookUpdate?: (updatedBook: userBook) => void;
-  onSessionAdded?: () => void;
 }
 
 function getStatusMeta(status: userBook['status']) {
@@ -23,7 +21,7 @@ function getStatusMeta(status: userBook['status']) {
   return { label: 'To Read', variant: 'neutral' as const };
 }
 
-export function BookCard({ book, onBookUpdate, onSessionAdded }: BookCardProps) {
+export function BookCard({ book, onBookUpdate }: BookCardProps) {
   const progressPercentage = book.totalPages && book.currentPage
     ? Math.min((book.currentPage / book.totalPages) * 100, 100)
     : 0;
@@ -93,12 +91,6 @@ export function BookCard({ book, onBookUpdate, onSessionAdded }: BookCardProps) 
             <FiArrowRight className="text-[11px]" />
           </Button>
         </Link>
-
-        {(book.status === 'reading' || book.status === 'notStarted') && (
-          <div className="pt-0.5">
-            <QuickSessionAdd bookId={book.id} onSessionAdded={onSessionAdded} />
-          </div>
-        )}
 
         {(book.status === 'reading' || book.status === 'notStarted') && book.totalPages ? (
           <QuickProgressUpdate book={book} onUpdate={onBookUpdate} />

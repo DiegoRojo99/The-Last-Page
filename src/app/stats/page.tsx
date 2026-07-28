@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useCurrentUser } from '@/lib/currentUser';
 import { 
-  FiBookOpen, FiClock, FiTrendingUp, FiAward,
+  FiBookOpen, FiTrendingUp, FiAward,
   FiUsers, FiTarget, FiHeart, FiBarChart,
   FiActivity, FiStar, FiBook
 } from 'react-icons/fi';
@@ -22,16 +22,12 @@ interface BookStats {
 }
 
 interface ReadingStats {
-  totalSessions: number;
-  totalReadingTime: number;
-  averageSessionLength: number;
-  averageSessionsPerBook: number;
-  pagesReadInSessions: number;
-  averageReadingSpeed: number;
-  readingStreak: number;
-  busiestReadingMonth: string;
-  sessionsThisMonth: number;
-  sessionsThisYear: number;
+  totalPagesRead: number;
+  booksWithProgress: number;
+  averagePagesProgressed: number;
+  averageCompletionPercentage: number;
+  startedThisMonth: number;
+  completedThisYear: number;
 }
 
 interface WishlistStats {
@@ -82,15 +78,6 @@ export default function StatsPage() {
     fetchStats();
   }, [user, loading]);
 
-  const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    if (hours > 0) {
-      return `${hours}h ${remainingMinutes}m`;
-    }
-    return `${minutes}m`;
-  };
-
   const getTopAuthors = (authorStats: { [key: string]: number }, limit: number = 5) => {
     return Object.entries(authorStats)
       .sort(([,a], [,b]) => b - a)
@@ -129,7 +116,7 @@ export default function StatsPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">No Statistics Available</h1>
-          <p className="text-gray-600">Start adding books and reading sessions to see your stats!</p>
+          <p className="text-gray-600">Start adding books and updating progress to see your stats!</p>
         </div>
       </div>
     );
@@ -184,13 +171,13 @@ export default function StatsPage() {
           <div className="bg-white p-6 rounded-lg shadow-sm border">
             <div className="flex items-center">
               <div className="bg-orange-100 p-3 rounded-full mr-4">
-                <FiClock className="text-orange-600 text-xl" />
+                <FiBookOpen className="text-orange-600 text-xl" />
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-900">
-                  {formatTime(stats.readingStats.totalReadingTime)}
+                  {stats.readingStats.totalPagesRead.toLocaleString()}
                 </h3>
-                <p className="text-gray-600 text-sm">Reading Time</p>
+                <p className="text-gray-600 text-sm">Pages Progressed</p>
               </div>
             </div>
           </div>
@@ -201,8 +188,8 @@ export default function StatsPage() {
                 <FiActivity className="text-purple-600 text-xl" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-gray-900">{stats.readingStats.totalSessions}</h3>
-                <p className="text-gray-600 text-sm">Reading Sessions</p>
+                <h3 className="text-2xl font-bold text-gray-900">{stats.readingStats.booksWithProgress}</h3>
+                <p className="text-gray-600 text-sm">Books In Progress</p>
               </div>
             </div>
           </div>
@@ -264,46 +251,29 @@ export default function StatsPage() {
             <div className="p-6 border-b">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <FiTrendingUp className="mr-2 text-green-600" />
-                Reading Habits
+                Progress Insights
               </h3>
             </div>
             <div className="p-6 space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Average Session Length</span>
-                <span className="font-medium">{formatTime(stats.readingStats.averageSessionLength)}</span>
+                <span className="text-gray-600">Average Pages per Active Book</span>
+                <span className="font-medium">{stats.readingStats.averagePagesProgressed}</span>
               </div>
               
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Sessions per Book</span>
-                <span className="font-medium">{stats.readingStats.averageSessionsPerBook}</span>
+                <span className="text-gray-600">Average Completion</span>
+                <span className="font-medium">{stats.readingStats.averageCompletionPercentage}%</span>
               </div>
               
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Reading Speed</span>
-                <span className="font-medium">{stats.readingStats.averageReadingSpeed} pages/min</span>
+                <span className="text-gray-600">Books Started This Month</span>
+                <span className="font-medium">{stats.readingStats.startedThisMonth}</span>
               </div>
               
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Pages Read in Sessions</span>
-                <span className="font-medium">{stats.readingStats.pagesReadInSessions}</span>
+                <span className="text-gray-600">Books Completed This Year</span>
+                <span className="font-medium">{stats.readingStats.completedThisYear}</span>
               </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Sessions This Month</span>
-                <span className="font-medium">{stats.readingStats.sessionsThisMonth}</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Sessions This Year</span>
-                <span className="font-medium">{stats.readingStats.sessionsThisYear}</span>
-              </div>
-              
-              {stats.readingStats.busiestReadingMonth && (
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Busiest Month</span>
-                  <span className="font-medium">{stats.readingStats.busiestReadingMonth}</span>
-                </div>
-              )}
             </div>
           </div>
 
@@ -379,7 +349,7 @@ export default function StatsPage() {
                 </div>
                 <h4 className="font-medium text-gray-900">Reading Consistency</h4>
                 <p className="text-sm text-gray-600 mt-1">
-                  {stats.readingStats.sessionsThisMonth > 0 ? 'Great job staying consistent!' : 'Start a reading session today!'}
+                  {stats.readingStats.startedThisMonth > 0 ? 'Great job starting books this month!' : 'Start your next book today!'}
                 </p>
               </div>
               

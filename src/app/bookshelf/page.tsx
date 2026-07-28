@@ -198,10 +198,6 @@ export default function BookshelfPage() {
     setBooks((prev) => prev.map((book) => (book.id === updatedBook.id ? { ...book, ...updatedBook } : book)));
   }
 
-  function handleSessionAdded() {
-    setRefresh((prev) => !prev);
-  }
-
   const visibleSelectedCount = useMemo(
     () => filteredBooks.filter((book) => selectedBookIds.includes(book.id)).length,
     [filteredBooks, selectedBookIds]
@@ -734,7 +730,6 @@ export default function BookshelfPage() {
                         <BookCard
                           book={book}
                           onBookUpdate={handleBookUpdate}
-                          onSessionAdded={handleSessionAdded}
                         />
 
                         {(bookTags[book.id] || []).length > 0 ? (

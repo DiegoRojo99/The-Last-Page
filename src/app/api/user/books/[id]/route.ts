@@ -1,5 +1,5 @@
 import { CompleteUserBook } from "@/app/utils/types/booksAPI";
-import { readingSession, userBook } from "@/app/utils/types/booksDB";
+import { userBook } from "@/app/utils/types/booksDB";
 import { adminAuth, adminDB } from "@/lib/firebase-admin";
 import { googleBookDetails } from "@/lib/google-books";
 import { NextRequest, NextResponse } from "next/server";
@@ -47,25 +47,10 @@ export async function GET(req: NextRequest) {
       console.error(`Failed to fetch Google Books details for ${userBook.id}:`, error);
     }
 
-    // Get user reading sessions
-    const sessionsSnapshot = await adminDB
-      .collection('users')
-      .doc(uid)
-      .collection('books')
-      .doc(bookId)
-      .collection('readingSessions')
-      .get();
-
-    const sessions = sessionsSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data()
-    })) as readingSession[];
-
     const bookWithVolumeInfo: CompleteUserBook = {
       id: userBook.id,
       userInfo: { ...userBook },
-      volumeInfo: bookInfo?.volumeInfo ?? null,
-      sessions
+      volumeInfo: bookInfo?.volumeInfo ?? null
     };
 
     return NextResponse.json(bookWithVolumeInfo);

@@ -193,7 +193,7 @@ export default function HomeReadingPanels() {
             <p className="font-semibold text-[var(--neutral-900)]">
               <FiActivity className="mr-1 inline" /> This Week Focus
             </p>
-            <p className="mt-1">Aim for 3 reading sessions and at least 60 pages to build momentum.</p>
+            <p className="mt-1">Aim to move at least 60 pages forward across your active books this week.</p>
           </div>
         </CardContent>
       </Card>
